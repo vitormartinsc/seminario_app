@@ -1,11 +1,14 @@
 from django.shortcuts import render
 from django.contrib.auth.models import User
-from rest_framework import generics
+from rest_framework import generics, status
 from .serializers import UserSerializer, NoteSerializer
 from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
-from .serializers import CustomTokenObtainPairSerializer, CustomTokenRefreshSerializer
+from .serializers import CustomTokenObtainPairSerializer, CustomTokenRefreshSerializer, OrderSerializer
 from .models import Note
+from rest_framework.views import APIView
+
 
 class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
@@ -41,4 +44,25 @@ class CreateUserView(generics.CreateAPIView):
     serializer_class = UserSerializer
     permission_classes = [AllowAny]
     
+class CreateOrderView(APIView):
+    permission_classes = [IsAuthenticated]
 
+    def post(self, request):
+        if isinstance(request.data, list):  # Verifica se os dados recebidos são uma lista
+            orders = []
+            for order_data in request.data:
+                serializer = OrderSerializer(data=order_data, context={'request': request})
+                if serializer.is_valid():
+                    serializer.save()
+                    orders.append(serializer.data)
+                else:
+                    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response(orders, status=status.HTTP_201_CREATED)
+        else:
+            serializer = OrderSerializer(data=request.data, context={'request': request})
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    

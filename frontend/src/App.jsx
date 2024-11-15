@@ -6,6 +6,7 @@ import Home from './pages/Home';
 import NotFound from './pages/NotFound';
 import SaboresEmaus from './pages/SaboresEmaus';
 import ProtectedRoute from './components/ProtectedRoute';
+import CreateOrder from "./pages/CreateOrder";
 
 
 function Logout() {
@@ -34,6 +35,7 @@ function App() {
         <Route path="/register" element={<RegisterAndLogout />} />
         <Route path="/logout" element={<Logout />} />
         <Route path="/sabores-emaus" element={<SaboresEmaus />} />
+        <Route path="/fazer-pedido" element={<CreateOrder />} />
         <Route path="*" element={<NotFound />} />
         
       </Routes>

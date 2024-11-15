@@ -1,6 +1,6 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
-from .models import Note
+from .models import Note, Order
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer, TokenRefreshSerializer
 
 class UserSerializer(serializers.ModelSerializer):
@@ -47,3 +47,14 @@ class CustomTokenRefreshSerializer(TokenRefreshSerializer):
         data['username'] = user.username  # Se necessário, inclua o nome de usuário também
 
         return data
+    
+class OrderSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Order
+        fields = ['id', 'product', 'quantity', 'date', 'user']
+        read_only_fields = ['id', 'date', 'user']  # `id` e `user` serão gerados automaticamente
+
+    def create(self, validated_data):
+        # Atribua o usuário da requisição ao pedido
+        user = self.context['request'].user
+        return Order.objects.create(user=user, **validated_data)
