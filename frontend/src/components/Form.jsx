@@ -2,36 +2,42 @@ import { useState } from "react";
 import api from "../api";
 import { useNavigate } from "react-router-dom";
 import { ACCESS_TOKEN, REFRESH_TOKEN } from "../constans";
-import '../styles/Form.css'
+import '../styles/Form.css';
 import LoadingIndicator from "./LoadingIndicator";
 
 function Form({ route, method }) {
-    const [username, setUsername] = useState('')
-    const [password, setPassword] = useState('')
-    const [loading, setLoading] = useState(false)
-    const navigate = useNavigate()
-    const name = method === 'login' ? "Login" : "Register"
+    const [username, setUsername] = useState('');
+    const [password, setPassword] = useState('');
+    const [firstName, setFirstName] = useState('');  // Novo estado para first name
+    const [lastName, setLastName] = useState('');    // Novo estado para last name
+    const [loading, setLoading] = useState(false);
+    const navigate = useNavigate();
+    const name = method === 'login' ? "Login" : "Register";
 
     const handleSubmit = async (e) => {
         setLoading(true);
         e.preventDefault();
         try {
-            const res = await api.post(route, { username, password });
+            const data = method === 'login'
+                ? { username, password }
+                : { username, password, first_name: firstName, last_name: lastName };
+
+            const res = await api.post(route, data);
+
             if (method === 'login') {
                 localStorage.setItem(ACCESS_TOKEN, res.data.access);
                 localStorage.setItem(REFRESH_TOKEN, res.data.refresh);
-                console.log(res)
-                navigate('/')
+                console.log(res);
+                navigate('/');
             } else {
-                navigate('/login')
+                navigate('/login');
             }
         } catch (error) {
-            alert(error)
+            alert(error);
         } finally {
-            setLoading(false)
+            setLoading(false);
         }
-    }
-
+    };
 
     return (
         <form onSubmit={handleSubmit} className="form-container">
@@ -50,12 +56,30 @@ function Form({ route, method }) {
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Password"
             />
+            {method === 'register' && (
+                <>
+                    <input
+                        className="form-input"
+                        type="text"
+                        value={firstName}
+                        onChange={(e) => setFirstName(e.target.value)}
+                        placeholder="First Name"
+                    />
+                    <input
+                        className="form-input"
+                        type="text"
+                        value={lastName}
+                        onChange={(e) => setLastName(e.target.value)}
+                        placeholder="Last Name"
+                    />
+                </>
+            )}
             {loading && <LoadingIndicator />}
             <button className="form-button" type="submit">
                 {name}
             </button>
         </form>
-    )
+    );
 }
 
-export default Form
+export default Form;
