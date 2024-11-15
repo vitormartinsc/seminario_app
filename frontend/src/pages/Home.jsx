@@ -26,7 +26,7 @@ function Home() {
                 gap={2}
                 mt={3}
             >
-                <Link to="#" style={{ textDecoration: 'none', color: '#3f51b5', fontSize: '18px' }}>
+                <Link to="sabores-emaus" style={{ textDecoration: 'none', color: '#3f51b5', fontSize: '18px' }}>
                     Sabores Emaus
                 </Link>
                 <Link to="#" style={{ textDecoration: 'none', color: '#3f51b5', fontSize: '18px' }}>

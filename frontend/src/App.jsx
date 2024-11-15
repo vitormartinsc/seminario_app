@@ -4,6 +4,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Home from './pages/Home';
 import NotFound from './pages/NotFound';
+import SaboresEmaus from './pages/SaboresEmaus';
 import ProtectedRoute from './components/ProtectedRoute';
 
 
@@ -32,7 +33,9 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<RegisterAndLogout />} />
         <Route path="/logout" element={<Logout />} />
+        <Route path="/sabores-emaus" element={<SaboresEmaus />} />
         <Route path="*" element={<NotFound />} />
+        
       </Routes>
     </BrowserRouter>
   )
