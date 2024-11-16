@@ -1,23 +1,14 @@
-import React, { useState } from "react";
-import { Button, Typography, IconButton, Box, Grid, TextField } from "@mui/material";
-import AddIcon from "@mui/icons-material/Add";
-import RemoveIcon from "@mui/icons-material/Remove";
-import api from "../api";
-import { useNavigate } from "react-router-dom";
+import React, { useState } from 'react';
+import { Box, Typography, Grid, Button, IconButton, TextField } from '@mui/material';
+import AddIcon from '@mui/icons-material/Add';
+import RemoveIcon from '@mui/icons-material/Remove';
+import CustomDatePicker from '../components/CustomDatePicker';
 
-const availableProducts = [
-  "Tradicional",
-  "Tradicional Sem Açúcar",
-  "Cenoura com Chocolate",
-  "Farofa",
-  "Antepasto",
-  "Brioche",
-  "Browne",
-];
-
-function CreateOrder() {
+const CreateOrder = () => {
   const [orders, setOrders] = useState({});
-  const navigate = useNavigate();
+  const [deliveryDate, setDeliveryDate] = useState(null);
+
+  const availableProducts = ['Tradicional', 'Cenoura com Chocolate', 'Brioche'];
 
   const handleIncrease = (product) => {
     setOrders((prevOrders) => ({
@@ -33,31 +24,13 @@ function CreateOrder() {
     }));
   };
 
-  const handleSubmit = async () => {
-    const orderData = Object.entries(orders).map(([product, quantity]) => ({
-      product,
-      quantity,
-    }));
-
-    if (orderData.length === 0) {
-      alert("Por favor, adicione pelo menos um produto ao pedido!");
-      return;
-    }
-
-    try {
-      const res = await api.post("/api/orders/create/", orderData);
-      if (res.status === 201) {
-        alert("Pedido enviado com sucesso!");
-        navigate("/sabores-emaus"); // Retorna à página principal
-      }
-    } catch (error) {
-      console.error(error);
-      alert("Erro ao enviar o pedido. Tente novamente.");
-    }
+  const handleSubmit = () => {
+    console.log({ orders, deliveryDate });
+    // Lógica para enviar o pedido
   };
 
   return (
-    <Box sx={{ maxWidth: 600, margin: "auto", textAlign: "center", padding: 2 }}>
+    <Box sx={{ maxWidth: 600, margin: 'auto', textAlign: 'center', padding: 2 }}>
       <Typography variant="h4" gutterBottom>
         Criar Pedido
       </Typography>
@@ -73,8 +46,8 @@ function CreateOrder() {
                 <TextField
                   size="small"
                   value={orders[product] || 0}
-                  inputProps={{ readOnly: true }}
-                  sx={{ width: 50, textAlign: "center" }}
+                  slotProps={{input: {readOnly: true }}}
+                  sx={{ width: 50, textAlign: 'center' }}
                 />
                 <IconButton onClick={() => handleIncrease(product)}>
                   <AddIcon />
@@ -84,16 +57,27 @@ function CreateOrder() {
           </Grid>
         ))}
       </Grid>
+      <Box sx={{ marginTop: 3, textAlign: 'left' }}>
+        <Typography variant="body2" color="textSecondary" gutterBottom>
+          Escolha uma sexta-feira para a entrega do pedido:
+        </Typography>
+        <CustomDatePicker
+          label="Data de entrega"
+          value={deliveryDate}
+          onChange={setDeliveryDate}
+        />
+      </Box>
       <Button
         variant="contained"
         color="primary"
         onClick={handleSubmit}
         sx={{ marginTop: 3 }}
+        disabled={!deliveryDate} // Desabilitado sem uma data válida
       >
         Enviar Pedido
       </Button>
     </Box>
   );
-}
+};
 
 export default CreateOrder;
