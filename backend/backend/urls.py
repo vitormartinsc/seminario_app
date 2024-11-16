@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.urls import path, include   
-from api.views import CreateUserView, CustomTokenObtainPairView, CustomTokenRefreshView
+from api.views import CreateUserView, CustomTokenObtainPairView, CustomTokenRefreshView, CreateOrderView
 
 urlpatterns = [
     path('admin/', admin.site.urls),

@@ -51,7 +51,7 @@ class CustomTokenRefreshSerializer(TokenRefreshSerializer):
 class OrderSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
-        fields = ['id', 'product', 'quantity', 'date', 'user']
+        fields = ['id', 'product', 'quantity', 'date', 'user', 'batch_id']
         read_only_fields = ['id', 'date', 'user']  # `id` e `user` serão gerados automaticamente
 
     def create(self, validated_data):

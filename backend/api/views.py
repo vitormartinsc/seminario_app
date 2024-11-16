@@ -6,8 +6,9 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from .serializers import CustomTokenObtainPairSerializer, CustomTokenRefreshSerializer, OrderSerializer
-from .models import Note
+from .models import Note, Order
 from rest_framework.views import APIView
+import uuid
 
 
 class CustomTokenObtainPairView(TokenObtainPairView):
@@ -49,10 +50,14 @@ class CreateOrderView(APIView):
 
     def post(self, request):
         if isinstance(request.data, list):  # Verifica se os dados recebidos são uma lista
+            batch_id = uuid.uuid4()
             orders = []
             for order_data in request.data:
+                order_data['batch_id'] = batch_id
+                #print(order_data)
                 serializer = OrderSerializer(data=order_data, context={'request': request})
                 if serializer.is_valid():
+                    #print(serializer.data)
                     serializer.save()
                     orders.append(serializer.data)
                 else:
@@ -65,4 +70,9 @@ class CreateOrderView(APIView):
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+class PreviousOrdersView(generics.ListAPIView):
+    serializer_class = OrderSerializer
+    permission_classes = [IsAuthenticated]
     
+    def get_queryset(self):
+        return Order.objects.filter(user=self.request.user).order_by('-date')

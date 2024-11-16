@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
+import uuid
 
 class Note(models.Model):
     title = models.CharField(max_length=100)
@@ -26,6 +27,7 @@ class Order(models.Model):
     quantity = models.PositiveIntegerField()  # Campo para quantidade
     date = models.DateTimeField(default=timezone.now)  # Define a data como o momento atual ao criar o pedido
     user = models.ForeignKey(User, on_delete=models.CASCADE)
+    batch_id = models.UUIDField(default=uuid.uuid4)
 
     def __str__(self):
         return f'{self.product} - {self.quantity} unit(s)'

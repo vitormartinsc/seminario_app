@@ -7,6 +7,8 @@ import NotFound from './pages/NotFound';
 import SaboresEmaus from './pages/SaboresEmaus';
 import ProtectedRoute from './components/ProtectedRoute';
 import CreateOrder from "./pages/CreateOrder";
+import PreviousOrders from "./pages/PreviousOrders";
+
 
 
 function Logout() {
@@ -36,6 +38,7 @@ function App() {
         <Route path="/logout" element={<Logout />} />
         <Route path="/sabores-emaus" element={<SaboresEmaus />} />
         <Route path="/fazer-pedido" element={<CreateOrder />} />
+        <Route path="/pedidos-anteriores" element={<PreviousOrders />} />
         <Route path="*" element={<NotFound />} />
         
       </Routes>
