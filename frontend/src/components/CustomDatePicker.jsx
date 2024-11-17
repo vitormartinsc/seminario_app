@@ -20,8 +20,7 @@ const CustomDatePicker = ({ label, value, onChange }) => {
                 label={label}
                 value={value}
                 onChange={onChange}
-                //value={selectedDate}
-                //onChange={(newValue) => setSelectedDate(newValue)}
+                format='DD/MM/YYYY'
                 shouldDisableDate={(date) => !isFutureFriday(date)} // Desabilita datas que não são sextas-feiras futuras
                 slotProps={{
                     textField: {

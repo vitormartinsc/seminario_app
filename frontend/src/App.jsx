@@ -36,9 +36,21 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<RegisterAndLogout />} />
         <Route path="/logout" element={<Logout />} />
-        <Route path="/sabores-emaus" element={<SaboresEmaus />} />
-        <Route path="/fazer-pedido" element={<CreateOrder />} />
-        <Route path="/pedidos-anteriores" element={<PreviousOrders />} />
+        <Route path="/sabores-emaus" element={
+          <ProtectedRoute>
+          <SaboresEmaus />
+          </ProtectedRoute>
+          } />
+        <Route path="/fazer-pedido" element={
+          <ProtectedRoute>
+          <CreateOrder />
+          </ProtectedRoute>
+          } />
+        <Route path="/pedidos-anteriores" element={
+          <ProtectedRoute>
+          <PreviousOrders />
+          </ProtectedRoute>
+          } /> 
         <Route path="*" element={<NotFound />} />
         
       </Routes>
