@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Box, Typography, Grid, Button, IconButton, TextField } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
@@ -8,6 +8,21 @@ import api from '../api';
 const CreateOrder = () => {
   const [orders, setOrders] = useState({});
   const [deliveryDate, setDeliveryDate] = useState(null);
+
+  useEffect(() => {
+    const fechtOrders = async () => {
+      try {
+        const response = await api.get('/api/orders/previous/')
+        console.log(response)
+      } catch (error) {
+        console.error();
+
+      }
+    };
+    fechtOrders();
+  }, []
+  )
+
 
   const availableProducts = [
     "Tradicional",

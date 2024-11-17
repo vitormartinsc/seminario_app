@@ -30,6 +30,9 @@ class Order(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     batch_id = models.UUIDField(default=uuid.uuid4)
     date_of_delivery = models.DateField(blank=True, null=True)
+    month = models.PositiveIntegerField(null=True, blank=True)
+    week = models.PositiveIntegerField(null=True, blank=True)
+    year = models.PositiveIntegerField(null=True, blank=True)
 
     def __str__(self):
         return f'{self.product} - {self.quantity} unit(s)'
@@ -37,8 +40,10 @@ class Order(models.Model):
     def save(self, *args, **kwargs):
         if not self.date_of_delivery: # se nenhuma data de delivery for selecionada    
             self.date_of_delivery = self.get_next_friday(self.date)
-            
-        super().save(*args, **kwargs)
+        self.month = self.date_of_delivery.month
+        self.year = self.date_of_delivery.year
+        self.week = self.date_of_delivery.isocalendar()[1]  # Semana do ano
+        super().save(*args, **kwargs)  # Chama o método save(
 
     def get_next_friday(date):
         days_ahead = 4 - date.weekday()

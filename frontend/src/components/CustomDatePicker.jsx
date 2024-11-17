@@ -1,10 +1,8 @@
-import React from 'react';
-import { TextField } from '@mui/material';
+import React, { useEffect, useState } from 'react';
 import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import dayjs from 'dayjs';
 import { ptBR } from '@mui/x-date-pickers/locales';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import { useState } from 'react';
 
 function isFutureFriday(date) {
     const isFriday = date.day() === 5;
@@ -12,15 +10,35 @@ function isFutureFriday(date) {
     return isFriday && isFuture;
 }
 
+function getNextFriday() {
+    const today = dayjs();
+    const dayOfWeek = today.day();
+    const daysUntilFriday = dayOfWeek <= 5 ? 5 - dayOfWeek : 7 - (dayOfWeek - 5);
+    return today.add(daysUntilFriday, 'day');
+}
+
 const CustomDatePicker = ({ label, value, onChange }) => {
+    const [internalValue, setInternalValue] = useState(value || getNextFriday());
+
+    useEffect(() => {
+        if (!value) {
+            setInternalValue(getNextFriday());
+            if (onChange) {
+                onChange(getNextFriday());
+            }
+        }
+    }, [value, onChange]);
 
     return (
         <LocalizationProvider dateAdapter={AdapterDayjs} locale={ptBR}>
             <DatePicker
                 label={label}
-                value={value}
-                onChange={onChange}
-                format='DD/MM/YYYY'
+                value={internalValue}
+                onChange={(newValue) => {
+                    setInternalValue(newValue);
+                    if (onChange) onChange(newValue);
+                }}
+                format="DD/MM/YYYY"
                 shouldDisableDate={(date) => !isFutureFriday(date)} // Desabilita datas que não são sextas-feiras futuras
                 slotProps={{
                     textField: {
@@ -28,7 +46,6 @@ const CustomDatePicker = ({ label, value, onChange }) => {
                         inputProps: { readOnly: true },
                     },
                 }}
-                //renderInput={(params) => <TextField {...params} />}
             />
         </LocalizationProvider>
     );
