@@ -76,3 +76,33 @@ class PreviousOrdersView(generics.ListAPIView):
     
     def get_queryset(self):
         return Order.objects.filter(user=self.request.user).order_by('-date')
+
+class PreviousOrdersSummaryView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        # Filtra os pedidos do usuário atual
+        user_orders = Order.objects.filter(user=request.user)
+
+        # Resumo mensal
+        month_summary = (
+            user_orders
+            .values('year', 'month')  # Agrupar por ano e mês
+            .annotate(total_quantity=Sum('quantity'))  # Soma as quantidades
+            .order_by('year', 'month')  # Ordena por ano e mês
+        )
+
+        # Resumo semanal
+        week_summary = (
+            user_orders
+            .values('year', 'week')  # Agrupar por ano e semana
+            .annotate(total_quantity=Sum('quantity'))  # Soma as quantidades
+            .order_by('year', 'week')  # Ordena por ano e semana
+        )
+
+        # Retorna os resumos como resposta JSON
+        return Response({
+            'month_summary': list(month_summary),
+            'week_summary': list(week_summary),
+        })
+    
