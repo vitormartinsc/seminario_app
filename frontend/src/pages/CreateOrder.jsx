@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Typography, Grid, Button, IconButton, TextField } from '@mui/material';
+import { Box, Typography, Grid, Button, IconButton, TextField, Alert } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
 import CustomDatePicker from '../components/CustomDatePicker';
@@ -8,20 +8,67 @@ import api from '../api';
 const CreateOrder = () => {
   const [orders, setOrders] = useState({});
   const [deliveryDate, setDeliveryDate] = useState(null);
+  const [monthSummary, setMonthSummary] = useState([]);
+  const [weekSummary, setWeekSummary] = useState([]);
+  const [monthOrdersCount, setmonthOrdersCount] = useState(0);
+  const [weekOrdersCount, setweekOrdersCount] = useState(0);
+
+  const fetchOrdersSummary = async () => {
+    try {
+      const response = await api.get('/api/orders/previous/summary/');
+      setMonthSummary(response.data.month_summary);
+      setWeekSummary(response.data.week_summary)
+    } catch (error) {
+      console.error("Erro ao buscar o resumo dos pedidos: ", error);
+    }
+
+  }
+
+  const updateOrderCounts = (selectedDate) => {
+    if (!selectedDate) {
+      setmonthOrdersCount(0);
+      setweekOrdersCount(0);
+      return
+    } else {
+
+      const selectedYear = selectedDate.year();
+      const selectedMonth = selectedDate.month() + 1; // o mês começa no zero
+      const selectedWeek = selectedDate.week();
+
+      const monthData = monthSummary.find(
+        (entry) =>
+          entry.year === selectedYear &&
+          entry.month === selectedMonth
+      );
+
+      window.monthSummary = monthSummary;
+
+      setmonthOrdersCount(monthData ? monthData.total_quantity : 0);
+
+
+
+      const weekData = weekSummary.find(
+        (entry) =>
+          entry.year === selectedYear &&
+          entry.month === selectedMonth &&
+          entry.week === selectedWeek
+
+      )
+      setweekOrdersCount(weekData ? weekData.total_quantity : 0);
+
+
+    }
+
+  }
+
+  // Buscar o resumo do usuário ao carregar a página
+  useEffect(() => {
+    fetchOrdersSummary();
+  }, [])
 
   useEffect(() => {
-    const fechtOrders = async () => {
-      try {
-        const response = await api.get('/api/orders/previous/')
-        console.log(response)
-      } catch (error) {
-        console.error();
-
-      }
-    };
-    fechtOrders();
-  }, []
-  )
+    updateOrderCounts(deliveryDate);
+  }, [deliveryDate, monthSummary, weekSummary]);
 
 
   const availableProducts = [
@@ -154,7 +201,18 @@ const CreateOrder = () => {
         />
       </Grid>
 
-      {/* Botão ocupando largura total */}
+      <Box sx={{ marginTop: 2 }}>
+        <Alert severity="info">
+          {monthOrdersCount > 0
+            ? `Para este mês, você já solicitou ${monthOrdersCount} produtos.`
+            : "Você ainda não solicitou produtos para este mês."}
+          <br />
+          {weekOrdersCount > 0
+            ? `Para esta semana, você já solicitou ${weekOrdersCount} produtos.`
+            : "Você ainda não solicitou produtos para esta semana."}
+        </Alert>
+      </Box>
+
       <Grid item xs={12}>
         <Button
           variant="contained"
@@ -169,6 +227,5 @@ const CreateOrder = () => {
     </Box>
   )
 };
-
 
 export default CreateOrder;
