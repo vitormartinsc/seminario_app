@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Typography, Grid, Button, IconButton, TextField, Alert } from '@mui/material';
+import { Box, Typography, Grid, Button, IconButton, TextField, Alert, CircularProgress } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
 import CustomDatePicker from '../components/CustomDatePicker';
@@ -12,16 +12,19 @@ const CreateOrder = () => {
   const [weekSummary, setWeekSummary] = useState([]);
   const [monthOrdersCount, setmonthOrdersCount] = useState(0);
   const [weekOrdersCount, setweekOrdersCount] = useState(0);
+  const [loading, setLoading] = useState(false)
 
   const fetchOrdersSummary = async () => {
+    setLoading(true);
     try {
       const response = await api.get('/api/orders/previous/summary/');
       setMonthSummary(response.data.month_summary);
       setWeekSummary(response.data.week_summary)
     } catch (error) {
       console.error("Erro ao buscar o resumo dos pedidos: ", error);
+    } finally {
+      setLoading(false);
     }
-
   }
 
   const updateOrderCounts = (selectedDate) => {
@@ -41,24 +44,18 @@ const CreateOrder = () => {
           entry.month === selectedMonth
       );
 
-      window.monthSummary = monthSummary;
-
       setmonthOrdersCount(monthData ? monthData.total_quantity : 0);
-
-
 
       const weekData = weekSummary.find(
         (entry) =>
           entry.year === selectedYear &&
-          entry.month === selectedMonth &&
           entry.week === selectedWeek
 
       )
+
       setweekOrdersCount(weekData ? weekData.total_quantity : 0);
 
-
     }
-
   }
 
   // Buscar o resumo do usuário ao carregar a página
@@ -68,8 +65,7 @@ const CreateOrder = () => {
 
   useEffect(() => {
     updateOrderCounts(deliveryDate);
-  }, [deliveryDate, monthSummary, weekSummary]);
-
+  }, [deliveryDate, monthSummary, weekSummary, loading]);
 
   const availableProducts = [
     "Tradicional",
@@ -117,16 +113,20 @@ const CreateOrder = () => {
         }));
 
       // Enviar para o backend
+      setLoading(true);
       const response = await api.post("/api/orders/create/", orderData);
 
       if (response.status === 201) {
-        alert("Pedido enviado com sucesso!");
+        //alert("Pedido enviado com sucesso!");
         setOrders({}); // Limpar os pedidos
         setDeliveryDate(null); // Limpar a data de entrega
       }
     } catch (error) {
       console.error(error);
       alert("Erro ao enviar o pedido. Tente novamente.");
+    } finally {
+      setLoading(false);
+      fetchOrdersSummary()
     }
   };
 
@@ -135,97 +135,110 @@ const CreateOrder = () => {
       <Typography variant="h4" gutterBottom>
         Criar Pedido
       </Typography>
-      <Grid container spacing={2}>
-        {availableProducts.map((product) => (
-          <Grid item xs={12} key={product}>
-            <Box
-              display="flex"
-              alignItems="center"
-              justifyContent="space-between"
-              sx={{
-                padding: 1,
-                border: "1px solid #ddd",
-                borderRadius: "8px",
-                backgroundColor: "#f9f9f9",
-              }}
-            >
-              {/* Nome do produto */}
-              <Typography
-                sx={{
-                  flex: 1,
-                  textAlign: "left",
-                  whiteSpace: "nowrap",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                }}
-              >
-                {product}
-              </Typography>
+      {/* Exibir Loading se estiver aguardando os dados */}
+      {loading ? (
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '200px' }}>
+          <CircularProgress />
+        </Box>
 
-              {/* Botões de controle */}
-              <Box display="flex" alignItems="center" justifyContent="flex-end">
-                <IconButton onClick={() => handleDecrease(product)}>
-                  <RemoveIcon />
-                </IconButton>
-                <TextField
-                  size="small"
-                  value={orders[product] || 0}
-                  inputProps={{ readOnly: true }}
+      ) : (
+        <>
+          <Grid container spacing={2}>
+            {availableProducts.map((product) => (
+              <Grid item xs={12} key={product}>
+                <Box
+                  display="flex"
+                  alignItems="center"
+                  justifyContent="space-between"
                   sx={{
-                    width: 50,
-                    textAlign: "center",
-                    "& input": { textAlign: "center" }, // Centraliza o texto
+                    padding: 1,
+                    border: "1px solid #ddd",
+                    borderRadius: "8px",
+                    backgroundColor: "#f9f9f9",
                   }}
-                />
-                <IconButton onClick={() => handleIncrease(product)}>
-                  <AddIcon />
-                </IconButton>
-              </Box>
-            </Box>
+                >
+                  {/* Nome do produto */}
+                  <Typography
+                    sx={{
+                      flex: 1,
+                      textAlign: "left",
+                      whiteSpace: "nowrap",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                    }}
+                  >
+                    {product}
+                  </Typography>
+
+                  {/* Botões de controle */}
+                  <Box display="flex" alignItems="center" justifyContent="flex-end">
+                    <IconButton onClick={() => handleDecrease(product)}>
+                      <RemoveIcon />
+                    </IconButton>
+                    <TextField
+                      size="small"
+                      value={orders[product] || 0}
+                      inputProps={{ readOnly: true }}
+                      sx={{
+                        width: 50,
+                        textAlign: "center",
+                        "& input": { textAlign: "center" }, // Centraliza o texto
+                      }}
+                    />
+                    <IconButton onClick={() => handleIncrease(product)}>
+                      <AddIcon />
+                    </IconButton>
+                  </Box>
+                </Box>
+              </Grid>
+            ))}
           </Grid>
-        ))}
-      </Grid>
-      <Grid item xs={12}>
-        <Typography variant="body2" color="textSecondary" gutterBottom>
-          Escolha uma sexta-feira para a entrega do pedido:
-        </Typography>
-      </Grid>
+          <Grid item xs={12}>
+            <Typography variant="body2" color="textSecondary" gutterBottom>
+              Escolha uma sexta-feira para a entrega do pedido:
+            </Typography>
+          </Grid>
 
-      {/* CustomDatePicker ocupando largura total */}
-      <Grid item xs={12}>
-        <CustomDatePicker
-          label="Data de entrega"
-          value={deliveryDate}
-          onChange={setDeliveryDate}
-          fullWidth
-        />
-      </Grid>
+          {/* CustomDatePicker ocupando largura total */}
+          <Grid item xs={12}>
+            <CustomDatePicker
+              label="Data de entrega"
+              value={deliveryDate}
+              onChange={setDeliveryDate}
+              fullWidth
+            />
+          </Grid>
 
-      <Box sx={{ marginTop: 2 }}>
-        <Alert severity="info">
-          {monthOrdersCount > 0
-            ? `Para este mês, você já solicitou ${monthOrdersCount} produtos.`
-            : "Você ainda não solicitou produtos para este mês."}
-          <br />
-          {weekOrdersCount > 0
-            ? `Para esta semana, você já solicitou ${weekOrdersCount} produtos.`
-            : "Você ainda não solicitou produtos para esta semana."}
-        </Alert>
-      </Box>
+          <Box sx={{ marginTop: 2 }}>
+            <Alert severity="info" sx={{ textAlign: 'left', alignItems: 'flex-start' }}>
+              <Typography component="div" variant="body2" sx={{ marginBottom: 1 }}>
+                <ul style={{ paddingLeft: '1.5em', margin: 0 }}>
+                  <li>
+                    Para esta semana, você {weekOrdersCount > 0 ? `já solicitou ${weekOrdersCount} produtos.` : `ainda não solicitou produtos.`}
+                  </li>
+                  <li>
+                    Para este mês, você já solicitou {monthOrdersCount > 0 ? `${monthOrdersCount} produtos.` : `nenhum produto.`}
+                  </li>
+                </ul>
+              </Typography>
+            </Alert>
+          </Box>
 
-      <Grid item xs={12}>
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={handleSubmit}
-          disabled={!deliveryDate} // Desabilitado sem uma data válida
-          fullWidth
-        >
-          Enviar Pedido
-        </Button>
-      </Grid>
+          <Grid item xs={12}>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={handleSubmit}
+              disabled={!deliveryDate} // Desabilitado sem uma data válida
+              fullWidth
+            >
+              Enviar Pedido
+            </Button>
+          </Grid>
+        </>
+      )};
     </Box>
   )
-};
+}
 
 export default CreateOrder;
