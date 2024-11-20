@@ -48,6 +48,7 @@ function PreviousOrders() {
     
         // Converte filterDate em um objeto Date para comparações
         const filterDateObj = new Date(filterDate);
+        window.filterDate = filterDate;
     
         const filtered = {};
     
@@ -61,7 +62,7 @@ function PreviousOrders() {
                 filtered[batchId] = batchOrders;
             }
         });
-    
+        
         // Atualiza o estado com os pedidos filtrados
         setFilteredOrders(filtered);
     }
@@ -132,10 +133,10 @@ function PreviousOrders() {
                                             color="textSecondary"
                                             sx={{ marginBottom: 0.5 }}
                                         >
-                                            <strong>Pedido em:</strong> {new Date(batchOrders[0].date).toLocaleDateString()}
+                                            <strong>Pedido em:</strong> {new Date(batchOrders[0].date.substring(0, 10) + 'T00:00:00').toLocaleDateString()}
                                         </Typography>
                                         <Typography variant="body2" color="textSecondary">
-                                            <strong>Entrega em:</strong> {new Date(batchOrders[0].date_of_delivery).toLocaleDateString()}
+                                            <strong>Entrega em:</strong> {new Date(batchOrders[0].date_of_delivery + 'T00:00:00').toLocaleDateString()}
                                         </Typography>
                                     </Box>
                                     <Box component="ul" sx={{ padding: 0, listStyle: "none" }}>
