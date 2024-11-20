@@ -105,4 +105,4 @@ class PreviousOrdersSummaryView(APIView):
             'month_summary': list(month_summary),
             'week_summary': list(week_summary),
         })
-    
+
