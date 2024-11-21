@@ -81,6 +81,13 @@ class PreviousOrdersView(generics.ListAPIView):
             date_of_delivery__lt = self.today,
             user=self.request.user
             ).order_by('-date')
+        
+class OrdersView(generics.ListAPIView):
+    serializer_class = OrderSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def get_queryset(self):
+        return Order.objects.filter(user=self.request.user).order_by('-date_of_delivery')
 
 class PreviousOrdersSummaryView(APIView):
     permission_classes = [IsAuthenticated]

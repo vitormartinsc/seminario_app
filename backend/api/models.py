@@ -45,28 +45,25 @@ class Order(models.Model):
     date = models.DateTimeField(default=timezone.now)  # Define a data como o momento atual ao criar o pedido
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     batch_id = models.UUIDField(default=uuid.uuid4)
-    date_of_delivery = models.DateField(blank=True, null=True)
-    month = models.PositiveIntegerField(null=True, blank=True)
-    week = models.PositiveIntegerField(null=True, blank=True)
-    year = models.PositiveIntegerField(null=True, blank=True)
+    date_of_delivery = models.DateField(blank=True, null=True)  # Será automaticamente preenchido com a sexta-feira correspondente ao week_label
+    week_label = models.CharField(max_length=50, blank=True, null=True)  # Novo campo week_label
 
     def __str__(self):
         return f'{self.product} - {self.quantity} unit(s)'
-    
-    def save(self, *args, **kwargs):
-        if not self.date_of_delivery: # se nenhuma data de delivery for selecionada    
-            self.date_of_delivery = self.get_next_friday(self.date)
-        self.month = self.date_of_delivery.month
-        self.year = self.date_of_delivery.year
-        self.week = self.date_of_delivery.isocalendar()[1]  # Semana do ano
-        super().save(*args, **kwargs)  # Chama o método save(
 
-    def get_next_friday(date):
-        days_ahead = 4 - date.weekday()
-        if days_ahead <= 0:
-            days_ahead += 7 # move para a próxima semana se já passou de sexta feira
+    def save(self, *args, **kwargs):
+        # Se o date_of_delivery for fornecido, buscar a semana correspondente e definir date_of_delivery
+        if self.date_of_delivery:
+            try:
+                # Encontra a semana com base no week_label
+                week = Week.objects.get(date=self.date_of_delivery)
+                self.week_label = week.week_label # Define a sexta-feira correspondente como date_of_delivery
+            except Week.DoesNotExist:
+                # Se a semana não existir, cria uma nova semana
+                raise ValueError(f"A semana com o label {self.week_label} não existe.")
         
-        return date + datetime.timedelta(days=days_ahead)
+        super().save(*args, **kwargs)  # Salva o objeto
+    
 
 class Week(models.Model):
     date = models.DateField(unique=True)  # Sempre será uma sexta-feira
