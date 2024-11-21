@@ -65,7 +65,7 @@ function SaboresEmaus() {
                     fullWidth
                     style={{ marginBottom: "15px", padding: "12px" }}
                 >
-                    Pedidos Pendentes
+                    Pedidos 
                 </Button>
 
                 {/* Botão para Visualizar Histórico de Pedidos Finalizados */}
