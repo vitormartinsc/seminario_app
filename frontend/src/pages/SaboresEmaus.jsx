@@ -14,7 +14,7 @@ function SaboresEmaus() {
     }
 
     const handleEditOpenOrders = () => {
-        
+
     }
 
     return (
@@ -54,7 +54,7 @@ function SaboresEmaus() {
                     fullWidth
                     style={{ marginBottom: "15px", padding: "12px" }}
                 >
-                    Agendar Pedido
+                    Agendar
                 </Button>
 
                 {/* Botão para Editar/Visualizar Pedidos Abertos */}
