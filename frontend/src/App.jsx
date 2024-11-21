@@ -46,7 +46,7 @@ function App() {
           <CreateOrder />
           </ProtectedRoute>
           } />
-        <Route path="/pedidos-anteriores" element={
+        <Route path="/historico-pedidos" element={
           <ProtectedRoute>
           <PreviousOrders />
           </ProtectedRoute>

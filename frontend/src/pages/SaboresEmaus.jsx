@@ -9,54 +9,74 @@ function SaboresEmaus() {
         navigate('/fazer-pedido');
     }
 
-    const handleViewOrders = () => {
-        navigate('/pedidos-anteriores');
+    const handleViewCompletedOrders = () => {
+        navigate('/historico-pedidos');
+    }
+
+    const handleEditOpenOrders = () => {
+        
     }
 
     return (
-        <Container 
-            maxWidth="xs" 
+        <Container
+            maxWidth="xs"
             style={{
-                display: 'flex', 
-                justifyContent: 'center', 
-                alignItems: 'center', 
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
                 height: '100vh'
             }}
         >
-            <Box 
-                sx={{ 
-                    display: 'flex', 
-                    flexDirection: 'column', 
-                    alignItems: 'center', 
-                    justifyContent: 'center', 
+            <Box
+                sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
                     textAlign: 'center',
                     boxShadow: 3,
                     borderRadius: 2,
                     padding: 3,
                     backgroundColor: '#fff',
-                    width: '100%'
+                    width: '100%',
+                    gap: 2,
                 }}
             >
                 <Typography variant="h4" gutterBottom>
                     Sabores Emaus
                 </Typography>
-                <Button 
-                    variant="contained" 
-                    color="primary" 
-                    onClick={handleMakeOrder} 
+
+                {/* Botão para Agendar Pedido */}
+                <Button
+                    variant="contained"
+                    color="primary"
+                    onClick={handleMakeOrder}
                     fullWidth
                     style={{ marginBottom: "15px", padding: "12px" }}
                 >
-                    Fazer Pedido
+                    Agendar Pedido
                 </Button>
-                <Button 
-                    variant="outlined" 
-                    color="secondary" 
-                    onClick={handleViewOrders} 
+
+                {/* Botão para Editar/Visualizar Pedidos Abertos */}
+                <Button
+                    variant="outlined"
+                    color="secondary"
+                    onClick={handleEditOpenOrders}
+                    fullWidth
+                    style={{ marginBottom: "15px", padding: "12px" }}
+                >
+                    Pedidos Pendentes
+                </Button>
+
+                {/* Botão para Visualizar Histórico de Pedidos Finalizados */}
+                <Button
+                    variant="outlined"
+                    color="secondary"
+                    onClick={handleViewCompletedOrders}
                     fullWidth
                     style={{ padding: "12px" }}
                 >
-                    Ver Pedidos Anteriores
+                    Histórico de Pedidos
                 </Button>
             </Box>
         </Container>

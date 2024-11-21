@@ -45,26 +45,31 @@ function PreviousOrders() {
             setFilteredOrders(orders);
             return;
         }
-    
+
         // Converte filterDate em um objeto Date para comparações
         const filterDateObj = new Date(filterDate);
         window.filterDate = filterDate;
-    
+
         const filtered = {};
-    
+
         // Itera sobre os pedidos
         Object.entries(orders).forEach(([batchId, batchOrders]) => {
             // Converte a data do primeiro pedido no lote para um objeto Date
             const batchDateObj = new Date(batchOrders[0][filterType]);
-    
+
             // Compara apenas a data (ano, mês, dia)
             if (batchDateObj.toISOString().substring(0, 10) === filterDate) {
                 filtered[batchId] = batchOrders;
             }
         });
-        
+
         // Atualiza o estado com os pedidos filtrados
         setFilteredOrders(filtered);
+    }
+
+    const clearFilter = () => {
+        setFilterDate("");
+        setFilteredOrders(orders);
     }
 
     if (loading) {
@@ -78,11 +83,12 @@ function PreviousOrders() {
     return (
         <Box sx={{ padding: 3 }}>
             <Typography variant="h4" gutterBottom>
-                Seus Pedidos Anteriores
+                Histórico de Pedidos
             </Typography>
 
             {/* Filtros */}
             <Box sx={{ display: "flex", gap: 2, marginBottom: 3, alignItems: "center" }}>
+                {/* Filtro por tipo de data (Pedido ou Entrega) */}
                 <TextField
                     select
                     label="Filtrar por"
@@ -93,6 +99,8 @@ function PreviousOrders() {
                     <MenuItem value="date">Data do Pedido</MenuItem>
                     <MenuItem value="date_of_delivery">Data de Entrega</MenuItem>
                 </TextField>
+
+                {/* Campo para escolher a data */}
                 <TextField
                     type="date"
                     label="Selecionar Data"
@@ -103,8 +111,24 @@ function PreviousOrders() {
                         shrink: true,
                     }}
                 />
-                <Button variant="contained" color="primary" onClick={handleFilter}>
+
+                {/* Botão Filtrar */}
+                <Button
+                    variant="contained"
+                    color="primary"
+                    onClick={handleFilter}
+                    sx={{ width: "150px" }} // Ajuste a largura conforme necessário
+                >
                     Filtrar
+                </Button>
+
+                {/* Botão Limpar Filtro */}
+                <Button
+                    variant="outlined"
+                    onClick={clearFilter}
+                    sx={{ width: "150px", marginLeft: "7px" }} // Mesma largura que o botão "Filtrar"
+                >
+                    Limpar Filtro
                 </Button>
             </Box>
 
@@ -136,7 +160,7 @@ function PreviousOrders() {
                                             <strong>Pedido em:</strong> {new Date(batchOrders[0].date.substring(0, 10) + 'T00:00:00').toLocaleDateString()}
                                         </Typography>
                                         <Typography variant="body2" color="textSecondary">
-                                            <strong>Entrega em:</strong> {new Date(batchOrders[0].date_of_delivery + 'T00:00:00').toLocaleDateString()}
+                                            <strong>Entregado em:</strong> {new Date(batchOrders[0].date_of_delivery + 'T00:00:00').toLocaleDateString()}
                                         </Typography>
                                     </Box>
                                     <Box component="ul" sx={{ padding: 0, listStyle: "none" }}>

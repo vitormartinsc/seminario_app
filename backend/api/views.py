@@ -2,6 +2,7 @@ from django.db.models import Sum
 from django.contrib.auth.models import User
 from rest_framework import generics, status
 from .serializers import UserSerializer, NoteSerializer
+from django.utils import timezone
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
@@ -73,9 +74,13 @@ class CreateOrderView(APIView):
 class PreviousOrdersView(generics.ListAPIView):
     serializer_class = OrderSerializer
     permission_classes = [IsAuthenticated]
+    today = timezone.now().date()
     
     def get_queryset(self):
-        return Order.objects.filter(user=self.request.user).order_by('-date')
+        return Order.objects.filter(
+            date_of_delivery__lt = self.today,
+            user=self.request.user
+            ).order_by('-date')
 
 class PreviousOrdersSummaryView(APIView):
     permission_classes = [IsAuthenticated]
