@@ -1,8 +1,10 @@
 from django.contrib import admin
-from .models import Note, Order
+from .models import Note, Order, Week
 
 
 admin.site.register(Note)
+admin.site.register(Week)
+
 #admin.site.register(Order)
 
 def delete_all_orders(modeladmin, request, queryset):
