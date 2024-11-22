@@ -29,7 +29,7 @@ const SaboresEmaus = () => {
     const groupOrdersByWeek = () => {
         return orders.reduce((acc, order) => {
             const { week_label, date_of_delivery } = order;
-            const date = new Date(date_of_delivery);
+            const date = new Date(date_of_delivery + 'T00:00:00');
             const formattedDate = format(date, 'dd/MM/yyyy'); // Formatar a data
 
             // Se não existir o week_label, cria uma nova entrada no objeto
