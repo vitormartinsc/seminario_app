@@ -10,7 +10,7 @@ const SaboresEmaus = () => {
     // Função para buscar os pedidos
     const fetchOrders = async () => {
         try {
-            const response = await api.get('/api/orders/'); // Endpoint da API
+            const response = await api.get('/api/orders/editable/'); // Endpoint da API
             setOrders(response.data);
             window.orders = response.data
             setLoading(false);

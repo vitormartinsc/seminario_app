@@ -88,6 +88,18 @@ class OrdersView(generics.ListAPIView):
     
     def get_queryset(self):
         return Order.objects.filter(user=self.request.user).order_by('-date_of_delivery')
+    
+class EditableOrdersView(generics.ListAPIView):
+    serializer_class = OrderSerializer
+    permission_classes = [IsAuthenticated]
+    today = timezone.now().date()
+    
+    def get_queryset(self):
+        user = self.request.user
+        return Order.objects.filter(
+            user = user,
+            date_of_delivery__gte=self.today
+        ).order_by('-date_of_delivery')
 
 class PreviousOrdersSummaryView(APIView):
     permission_classes = [IsAuthenticated]
