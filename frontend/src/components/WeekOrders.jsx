@@ -1,4 +1,4 @@
-import { Box, Grid, TextField, Typography } from "@mui/material";
+import { Box, Grid, TextField, Typography, Button } from "@mui/material";
 import React, { useState } from "react";
 
 const PRODUCTS = [
@@ -11,12 +11,13 @@ const PRODUCTS = [
     'Browne'
 ];
 
-const WeekOrders = ({ weekLabel, date, orders, onSave }) => {
+const WeekOrders = ({ weekLabel, index, date, orders, onSave }) => {
     const [isEditing, setIsEditing] = useState(false)
     const [quantities, setQuantities] = useState(() =>
         PRODUCTS.reduce((acc, product) => {
-            const existingOrder = orders.find((o) => o.product === product);
-            acc[product] = existingOrder ? existingOrder.quantity : 0;
+            window.orders = orders
+            const existingOrder = orders[product];
+            acc[product] = existingOrder ? existingOrder : 0;
             return acc
         }, {})
     )
@@ -39,40 +40,50 @@ const WeekOrders = ({ weekLabel, date, orders, onSave }) => {
     }
 
     return (
-        <Box sx={{ marginBottom: 3, padding: 2, border: '1px solid #ddd', borderRadius: '8px' }}>
+        <Box
+            sx={{
+                marginBottom: 3, padding: 2, border: '1px solid #ddd',
+                borderRadius: '8px'
+            }}
+            key={weekLabel + index}
+        >
             <Typography variant="h6" sx={{ fontWeight: 'bold', marginBottom: 2 }}>
                 {weekLabel} ({date})
             </Typography>
             <Grid container spacing={2}>
                 {PRODUCTS.map((product) => {
                     const quantity = quantities[product]
+                    window.quantity = quantities;
                     if (quantity === 0 && !isEditing) {
                         return null
                     }
 
                     return (
-                        <Grid itex xs={12} key={product}>
-                            <Typography variant="subtitle" sx={{ fontWeight: 'bold' }}>
+                        <Grid item xs={12} sm={6} key={product} sx={{ display: 'flex', alignItems: 'center' }}>
+                            <Typography variant="subtitle1" sx={{ fontWeight: 'bold', flexShrink: 0 }}>
                                 {product}
                             </Typography>
+
                             {isEditing ? (
                                 <TextField
                                     type="number"
                                     value={quantity}
                                     onChange={(e) => handleInputChange(product, e.target.value)}
-                                    slotProps={{
-                                        input: { min: 0 }
+                                    inputProps={{ min: 0 }}
+                                    sx={{
+                                        width: '60px', // Ajusta a largura do input
+                                        height: '30px', // Ajusta a altura do input
+                                        marginLeft: 2,
+                                        '& .MuiInputBase-root': {
+                                            height: '100%', // Garante que a altura do input ocupe todo o espaço
+                                        }
                                     }}
-                                    sx={{ width: '100px' }}
                                 />
-
                             ) : (
-                                <Typography>
+                                <Typography sx={{ marginLeft: 2 }}>
                                     Quantidade: {quantity} unidade(s)
                                 </Typography>
-
                             )}
-
                         </Grid>
                     )
 

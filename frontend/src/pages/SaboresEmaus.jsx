@@ -4,7 +4,8 @@ import { Box, Button, Typography, Paper } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit'
 import { format } from 'date-fns'; // Usando date-fns para formatar a data
-import '../styles/ListItem.css'
+import WeekOrders from '../components/WeekOrders';
+import '../styles/ListItem.css';
 
 const SaboresEmaus = () => {
     const [orders, setOrders] = useState([]);
@@ -15,7 +16,7 @@ const SaboresEmaus = () => {
         try {
             const response = await api.get('/api/orders/editable/'); // Endpoint da API
             setOrders(response.data);
-            window.orders = response.data
+            //window.orders = response.data
             setLoading(false);
         } catch (error) {
             console.error("Erro ao buscar pedidos", error);
@@ -37,12 +38,12 @@ const SaboresEmaus = () => {
 
             // Se não existir o week_label, cria uma nova entrada no objeto
             if (!acc[week_label]) {
-                acc[week_label] = { date: formattedDate, orders: [] };
+                acc[week_label] = { date: formattedDate, orders: {} };
             }
 
             // Adiciona diretamente o produto ao grupo
-            acc[week_label].orders.push({ product, quantity });
-
+            acc[week_label].orders[product] = quantity
+            //window.orders = acc;
             return acc;
         }, {});
     };
@@ -68,7 +69,7 @@ const SaboresEmaus = () => {
     const ordersGroupedByWeek = groupOrdersByWeek();
 
     return (
-        <Box sx={{ padding: 3 }}>
+        <Box sx={{ padding: 3 }}    >
             <Typography variant="h4" gutterBottom>
                 Pedidos Agendados
             </Typography>
@@ -84,52 +85,17 @@ const SaboresEmaus = () => {
             </Button>
 
             {/* Exibindo os pedidos agrupados por week_label */}
-            {Object.keys(ordersGroupedByWeek).map((weekLabel) => (
-                <Box key={weekLabel} sx={{ marginBottom: 3 }}>
-                    <Paper sx={{ padding: 2, backgroundColor: '#f9f9f9' }}>
-                        {/* Título com week_label e data */}
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 2 }}>
-                            <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-                                {weekLabel} ({ordersGroupedByWeek[weekLabel].date})
-                            </Typography>
+            {Object.keys(ordersGroupedByWeek).map((weekLabel, index) => (
+                <WeekOrders
+                    weekLabel={weekLabel}
+                    index={index}
+                    date={ordersGroupedByWeek[weekLabel].date}
+                    orders={ordersGroupedByWeek[weekLabel].orders}
+                    onSave={(updatedOrders) => console.log('salvar para backend', updatedOrders)}
 
-                            {/* Botões de Editar e Apagar */}
-                            <Box>
-                                <Button
-                                    variant="text"
-                                    color="primary"
-                                    startIcon={<EditIcon />}
-                                    onClick={() => handleEditOrder(weekLabel)}
-                                    sx={{ marginRight: 1 }}
-                                >
-                                    Editar
-                                </Button>
-                                <Button
-                                    variant="text"
-                                    color="error"
-                                    startIcon={<DeleteIcon />}
-                                    onClick={() => handleDeleteOrder(weekLabel)}
-                                >
-                                    Apagar
-                                </Button>
-                            </Box>
-                        </Box>
+                />
 
-                        {/* Listando os pedidos dessa semana */}
-                        <Box sx={{ paddingLeft: 2 }}>
-                            <Typography variant="subtitle1" sx={{ fontWeight: 'bold', marginBottom: 1 }}>
-                                Pedidos:
-                            </Typography>
-                            <ul style={{ listStyleType: 'none', padding: 0 }}>
-                                {Object.values(ordersGroupedByWeek[weekLabel].orders).map((order) => (
-                                    <li key={`${order.product}-${weekLabel}`}>
-                                        {order.product}: {order.quantity} unidade(s)
-                                    </li>
-                                ))}
-                            </ul>
-                        </Box>
-                    </Paper>
-                </Box>
+
             ))}
         </Box>
     )
