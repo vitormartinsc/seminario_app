@@ -74,4 +74,21 @@ class OrderSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         # Atribua o usuário da requisição ao pedido
         user = self.context['request'].user
-        return Order.objects.create(user=user, **validated_data)
+        product = validated_data.get('product')
+        date_of_delivery = validated_data.get('date_of_delivery')
+        quantity = validated_data.get('quantity')
+        
+        existing_order = Order.objects.filter(
+            user=user,
+            product=product,
+            date_of_delivery = date_of_delivery
+        ).first()
+        
+        if existing_order:
+            existing_order.quantity += quantity
+            existing_order.save()
+            return existing_order
+        
+        else:
+            return Order.objects.create(user=user, **validated_data)
+

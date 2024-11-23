@@ -1,23 +1,23 @@
 from django.contrib import admin
-from .models import Note, Order, Week
+from .models import Order
 
-
-admin.site.register(Note)
-admin.site.register(Week)
-
-#admin.site.register(Order)
-
-def delete_all_orders(modeladmin, request, queryset):
-    # Deletar todas as ordens
-    queryset.all().delete()
-    # Retornar uma mensagem de sucesso
-    modeladmin.message_user(request, "Todas as ordens foram deletadas com sucesso!")
-
-# Registrar o modelo no admin com a ação personalizada
 class OrderAdmin(admin.ModelAdmin):
-    actions = [delete_all_orders]  # Adiciona a ação personalizada de deletar todas as ordens
+    list_display = ('product', 'quantity', 'date_of_delivery', 'user', 'batch_id')
+    list_filter = ('date_of_delivery', 'product')
+    search_fields = ('product', 'user__username')
+
+    def save_model(self, request, obj, form, change):
+        # Verifica se existe uma ordem com o mesmo produto e data de entrega
+        existing_order = Order.objects.filter(
+            user=obj.user,
+            product=obj.product,
+            date_of_delivery=obj.date_of_delivery
+        ).first()
+
+        if existing_order and not change:  # Só soma se for uma criação
+            existing_order.quantity += obj.quantity
+            existing_order.save()
+        else:
+            super().save_model(request, obj, form, change)
 
 admin.site.register(Order, OrderAdmin)
-
-
-# Register your models here.

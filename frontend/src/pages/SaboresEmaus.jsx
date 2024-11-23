@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import api from "../api";
 import { Box, Button, Typography, Paper } from '@mui/material';
+import DeleteIcon from '@mui/icons-material/Delete';
+import EditIcon from '@mui/icons-material/Edit'
 import { format } from 'date-fns'; // Usando date-fns para formatar a data
+import '../styles/ListItem.css'
 
 const SaboresEmaus = () => {
     const [orders, setOrders] = useState([]);
@@ -28,7 +31,7 @@ const SaboresEmaus = () => {
     // Agrupar os pedidos por week_label e incluir a data da sexta-feira
     const groupOrdersByWeek = () => {
         return orders.reduce((acc, order) => {
-            const { week_label, date_of_delivery } = order;
+            const { week_label, date_of_delivery, product, quantity } = order;
             const date = new Date(date_of_delivery + 'T00:00:00');
             const formattedDate = format(date, 'dd/MM/yyyy'); // Formatar a data
 
@@ -37,7 +40,9 @@ const SaboresEmaus = () => {
                 acc[week_label] = { date: formattedDate, orders: [] };
             }
 
-            acc[week_label].orders.push(order);
+            // Adiciona diretamente o produto ao grupo
+            acc[week_label].orders.push({ product, quantity });
+
             return acc;
         }, {});
     };
@@ -48,6 +53,14 @@ const SaboresEmaus = () => {
         // Redirecionar para a página de novo pedido ou abrir um modal
     };
 
+    const handleEditOrder = () => {
+
+    }
+
+    const handleDeleteOrder = () => {
+
+    }
+
     if (loading) {
         return <Typography variant="h6">Carregando pedidos...</Typography>;
     }
@@ -57,7 +70,7 @@ const SaboresEmaus = () => {
     return (
         <Box sx={{ padding: 3 }}>
             <Typography variant="h4" gutterBottom>
-                Sabores Emaús
+                Pedidos Agendados
             </Typography>
 
             {/* Botão Novo + */}
@@ -73,27 +86,54 @@ const SaboresEmaus = () => {
             {/* Exibindo os pedidos agrupados por week_label */}
             {Object.keys(ordersGroupedByWeek).map((weekLabel) => (
                 <Box key={weekLabel} sx={{ marginBottom: 3 }}>
-                    <Paper sx={{ padding: 2 }}>
+                    <Paper sx={{ padding: 2, backgroundColor: '#f9f9f9' }}>
                         {/* Título com week_label e data */}
-                        <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-                            {weekLabel} ({ordersGroupedByWeek[weekLabel].date})
-                        </Typography>
-                        {/* Listando os pedidos dessa semana */}
-                        {ordersGroupedByWeek[weekLabel].orders.map((order) => (
-                            <Box key={order.id} sx={{ padding: 1 }}>
-                                <Typography>
-                                    Produto: {order.product} - Quantidade: {order.quantity}
-                                </Typography>
-                                <Typography variant="body2" color="textSecondary">
-                                    Data de entrega: {ordersGroupedByWeek[weekLabel].date}
-                                </Typography>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 2 }}>
+                            <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+                                {weekLabel} ({ordersGroupedByWeek[weekLabel].date})
+                            </Typography>
+
+                            {/* Botões de Editar e Apagar */}
+                            <Box>
+                                <Button
+                                    variant="text"
+                                    color="primary"
+                                    startIcon={<EditIcon />}
+                                    onClick={() => handleEditOrder(weekLabel)}
+                                    sx={{ marginRight: 1 }}
+                                >
+                                    Editar
+                                </Button>
+                                <Button
+                                    variant="text"
+                                    color="error"
+                                    startIcon={<DeleteIcon />}
+                                    onClick={() => handleDeleteOrder(weekLabel)}
+                                >
+                                    Apagar
+                                </Button>
                             </Box>
-                        ))}
+                        </Box>
+
+                        {/* Listando os pedidos dessa semana */}
+                        <Box sx={{ paddingLeft: 2 }}>
+                            <Typography variant="subtitle1" sx={{ fontWeight: 'bold', marginBottom: 1 }}>
+                                Pedidos:
+                            </Typography>
+                            <ul style={{ listStyleType: 'none', padding: 0 }}>
+                                {Object.values(ordersGroupedByWeek[weekLabel].orders).map((order) => (
+                                    <li key={`${order.product}-${weekLabel}`}>
+                                        {order.product}: {order.quantity} unidade(s)
+                                    </li>
+                                ))}
+                            </ul>
+                        </Box>
                     </Paper>
                 </Box>
             ))}
         </Box>
-    );
+    )
+
 };
 
 export default SaboresEmaus;
