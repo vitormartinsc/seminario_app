@@ -1,5 +1,7 @@
 import { Box, Grid, TextField, Typography, Button } from "@mui/material";
 import React, { useState } from "react";
+import { format } from 'date-fns'; // Usando date-fns para formatar a data
+import api from "../api";
 
 const PRODUCTS = [
     'Tradicional',
@@ -29,16 +31,27 @@ const WeekOrders = ({ weekLabel, index, date, orders, onSave }) => {
         }));
     };
 
-    const handleSave = () => {
-        setIsEditing(false);
+    const handleSave = async () => {
+        const formattedDate = format(date, 'yyyy-MM-dd')
+
         const updatedOrders = PRODUCTS.map((product) => ({
             product,
-            quantity: quantities[product]
+            quantity: quantities[product],
+            date_of_delivery: formattedDate
         })).filter((order) => order.quantity > 0);
 
-        onSave(updatedOrders);
-    }
+        try {
+            console.log(updatedOrders);
+            await api.post('/api/orders/update/', { orders: updatedOrders })
 
+        } catch (error) {
+            console.error('Erro ao enviar os pedidos: ', error) 
+        }   
+    
+        onSave(updatedOrders);
+        setIsEditing(false);
+    }
+    
     return (
         <Box
             sx={{
@@ -48,7 +61,7 @@ const WeekOrders = ({ weekLabel, index, date, orders, onSave }) => {
             key={weekLabel + index}
         >
             <Typography variant="h6" sx={{ fontWeight: 'bold', marginBottom: 2 }}>
-                {weekLabel} ({date})
+                {weekLabel} ({format(date, 'dd/MM/yyyy')})
             </Typography>
             <Grid container spacing={2}>
                 {PRODUCTS.map((product) => {

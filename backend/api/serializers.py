@@ -1,6 +1,6 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
-from .models import Note, Order, Week
+from .models import Order
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer, TokenRefreshSerializer
 from datetime import datetime, timedelta, time
 
@@ -18,12 +18,6 @@ class UserSerializer(serializers.ModelSerializer):
             last_name=validated_data.get("last_name", "")
         )
         return user
-
-class NoteSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Note
-        fields = ["id", "title", "content", "created_at", "author"]
-        extra_kwargs = {"author": {"read_only": True}}    
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     @classmethod

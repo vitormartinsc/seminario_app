@@ -1,7 +1,7 @@
 from django.db.models import Sum
 from django.contrib.auth.models import User
 from rest_framework import generics, status
-from .serializers import UserSerializer, NoteSerializer
+from .serializers import UserSerializer
 from django.utils import timezone
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
@@ -18,29 +18,6 @@ class CustomTokenObtainPairView(TokenObtainPairView):
 class CustomTokenRefreshView(TokenRefreshView):
     serializer_class = CustomTokenRefreshSerializer
     
-class NoteListCreate(generics.ListCreateAPIView):
-    serializer_class = NoteSerializer
-    permission_classes = [IsAuthenticated]
-    
-    def get_queryset(self):
-        user = self.request.user
-        return Note.objects.filter(author=user)
-    
-    def perform_create(self, serializer):
-        if serializer.is_valid():
-            serializer.save(author=self.request.user)
-        
-        else:
-            print(serializer.errors)
-        
-class NoteDelete(generics.DestroyAPIView):
-    serializer_class = NoteSerializer 
-    permission_classes = [IsAuthenticated]
-    
-    def get_queryset(self):
-        user = self.request.user
-        return Note.objects.filter(author=user) 
-
 class CreateUserView(generics.CreateAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
@@ -70,6 +47,51 @@ class CreateOrderView(APIView):
                 serializer.save()
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+class UpdateOrderView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def post(self, request):
+        user = self.request.user
+        orders = request.data.get('orders', [])
+        
+        if not orders:
+            return Response({'error': 'Nenhum pedido fornecido'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        for order in orders:
+            product = order.get('product')
+            quantity = order.get('quantity')
+            date_of_delivery = order.get('date_of_delivery')
+            
+            if not product or not quantity or not date_of_delivery:
+                return Response(
+                    {'error': 'Pedido inválido'},
+                    stastus = status.HTTP_400_BAD_REQUEST
+                )
+                
+            try: 
+                existing_order = Order.objects.get(
+                    user=user,
+                    product=product,
+                    date_of_delivery=date_of_delivery
+                )
+                
+                existing_order.quantity = quantity
+                existing_order.save()
+            
+            except Order.DoesNotExist:
+                Order.objects.create(
+                    user=user,
+                    product=product,
+                    quantity=quantity,
+                    date_of_delivery=date_of_delivery
+                )
+                
+            return Response(
+                {'message': 'Pedidos atualizados com sucesso'},
+                status.HTTP_200_OK
+                )
+        
 
 class PreviousOrdersView(generics.ListAPIView):
     serializer_class = OrderSerializer

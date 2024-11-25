@@ -3,7 +3,6 @@ import api from "../api";
 import { Box, Button, Typography, Paper } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit'
-import { format } from 'date-fns'; // Usando date-fns para formatar a data
 import WeekOrders from '../components/WeekOrders';
 import '../styles/ListItem.css';
 
@@ -12,7 +11,9 @@ const SaboresEmaus = () => {
     const [loading, setLoading] = useState(true);
 
     // Função para buscar os pedidos
-    const fetchOrders = async () => {
+    const fetchEditableOrders = async () => {
+        setLoading(true);
+        
         try {
             const response = await api.get('/api/orders/editable/'); // Endpoint da API
             setOrders(response.data);
@@ -26,7 +27,7 @@ const SaboresEmaus = () => {
 
     // Chama a função para buscar os pedidos quando o componente for montado
     useEffect(() => {
-        fetchOrders();
+        fetchEditableOrders();
     }, []);
 
     // Agrupar os pedidos por week_label e incluir a data da sexta-feira
@@ -34,11 +35,9 @@ const SaboresEmaus = () => {
         return orders.reduce((acc, order) => {
             const { week_label, date_of_delivery, product, quantity } = order;
             const date = new Date(date_of_delivery + 'T00:00:00');
-            const formattedDate = format(date, 'dd/MM/yyyy'); // Formatar a data
-
             // Se não existir o week_label, cria uma nova entrada no objeto
             if (!acc[week_label]) {
-                acc[week_label] = { date: formattedDate, orders: {} };
+                acc[week_label] = { date: date, orders: {} };
             }
 
             // Adiciona diretamente o produto ao grupo
@@ -91,7 +90,10 @@ const SaboresEmaus = () => {
                     index={index}
                     date={ordersGroupedByWeek[weekLabel].date}
                     orders={ordersGroupedByWeek[weekLabel].orders}
-                    onSave={(updatedOrders) => console.log('salvar para backend', updatedOrders)}
+                    onSave={(updatedOrders) => {
+                        fetchEditableOrders();
+                        console.log('salvar para backend', updatedOrders);
+                    }}
 
                 />
 
