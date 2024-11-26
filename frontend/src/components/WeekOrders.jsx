@@ -17,7 +17,6 @@ const WeekOrders = ({ weekLabel, index, date, orders, onSave }) => {
     const [isEditing, setIsEditing] = useState(false)
     const [quantities, setQuantities] = useState(() =>
         PRODUCTS.reduce((acc, product) => {
-            window.orders = orders
             const existingOrder = orders[product];
             acc[product] = existingOrder ? existingOrder : 0;
             return acc
@@ -38,7 +37,7 @@ const WeekOrders = ({ weekLabel, index, date, orders, onSave }) => {
             product,
             quantity: quantities[product],
             date_of_delivery: formattedDate
-        })).filter((order) => order.quantity > 0);
+        }))
 
         try {
             console.log(updatedOrders);
@@ -60,6 +59,7 @@ const WeekOrders = ({ weekLabel, index, date, orders, onSave }) => {
             }}
             key={weekLabel + index}
         >
+            
             <Typography variant="h6" sx={{ fontWeight: 'bold', marginBottom: 2 }}>
                 {weekLabel} ({format(date, 'dd/MM/yyyy')})
             </Typography>

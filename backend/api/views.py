@@ -57,13 +57,15 @@ class UpdateOrderView(APIView):
         
         if not orders:
             return Response({'error': 'Nenhum pedido fornecido'}, status=status.HTTP_400_BAD_REQUEST)
+                       
         
         for order in orders:
             product = order.get('product')
             quantity = order.get('quantity')
             date_of_delivery = order.get('date_of_delivery')
-            
-            if not product or not quantity or not date_of_delivery:
+            breakpoint()
+
+            if not product or not date_of_delivery:
                 return Response(
                     {'error': 'Pedido inválido'},
                     stastus = status.HTTP_400_BAD_REQUEST
@@ -76,16 +78,22 @@ class UpdateOrderView(APIView):
                     date_of_delivery=date_of_delivery
                 )
                 
-                existing_order.quantity = quantity
-                existing_order.save()
-            
+                if int(quantity) > 0:
+                    existing_order.quantity = quantity
+                    existing_order.save()
+
+                else:
+                    existing_order.delete()      
+                          
             except Order.DoesNotExist:
-                Order.objects.create(
-                    user=user,
-                    product=product,
-                    quantity=quantity,
-                    date_of_delivery=date_of_delivery
-                )
+                
+                if int(quantity) > 0:
+                    Order.objects.create(
+                        user=user,
+                        product=product,
+                        quantity=quantity,
+                        date_of_delivery=date_of_delivery
+                    )
                 
             return Response(
                 {'message': 'Pedidos atualizados com sucesso'},
