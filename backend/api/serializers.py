@@ -1,6 +1,6 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
-from .models import Order
+from .models import Order, Week
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer, TokenRefreshSerializer
 from datetime import datetime, timedelta, time
 
@@ -85,4 +85,25 @@ class OrderSerializer(serializers.ModelSerializer):
         
         else:
             return Order.objects.create(user=user, **validated_data)
+
+class WeekSerializer(serializers.ModelSerializer):
+    editable = serializers.SerializerMethodField()  # Adiciona o campo editable calculado
+    
+    class Meta:
+        model = Week
+        fields = ['id', 'date', 'week_label', 'editable']
+
+    def get_editable(self, obj):
+        """
+        Define se o pedido é editável com base na regra:
+        - É editável antes de quarta-feira (12h) para entregas na sexta-feira seguinte.
+        """
+        now = datetime.now()
+        if obj.date:
+           # Calcula a quarta-feira antes da data de entrega
+            wednesday_date = obj.date - timedelta(days=(obj.date.weekday() - 2))
+        # Converte para datetime às 12h
+            wednesday_cutoff = datetime.combine(wednesday_date, time(hour=12))
+            return now < wednesday_cutoff
+        return False
 

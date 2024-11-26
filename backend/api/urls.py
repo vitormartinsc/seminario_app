@@ -7,5 +7,6 @@ urlpatterns = [
     path('orders/', views.OrdersView.as_view(), name='orders-view'),
     path('orders/previous/summary/', views.PreviousOrdersSummaryView.as_view(), name='previous-orders-summary'),
     path('orders/editable/', views.EditableOrdersView.as_view(), name='editable-orders'),
-    path('orders/update/', views.UpdateOrderView.as_view(), name='update-order')
+    path('orders/update/', views.UpdateOrderView.as_view(), name='update-order'),
+    path('orders/available-dates/', views.availableDatesView.as_view(), name='available-dates')
 ]

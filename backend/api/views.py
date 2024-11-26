@@ -6,9 +6,10 @@ from django.utils import timezone
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
-from .serializers import CustomTokenObtainPairSerializer, CustomTokenRefreshSerializer, OrderSerializer
-from .models import Note, Order
+from .serializers import CustomTokenObtainPairSerializer, CustomTokenRefreshSerializer, OrderSerializer, WeekSerializer
+from .models import Week, Order
 from rest_framework.views import APIView
+from datetime import datetime, timedelta, time
 import uuid
 
 
@@ -159,4 +160,41 @@ class PreviousOrdersSummaryView(APIView):
             'month_summary': list(month_summary),
             'week_summary': list(week_summary),
         })
+        
+class availableDatesView(APIView):
+    serializer_class = OrderSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request):
+        user = request.user
+        now = timezone.now()
+        today = now.date()
+        
+        # Pedidos editáveis do usuário
+        editable_orders = Order.objects.filter(
+            user=user,
+            date_of_delivery__gte=today  # Apenas futuras ou da data atual
+        ).values_list('week_label', flat=True)  # Obtemos apenas os labels
+
+        # Todas as semanas disponíveis até o final do ano
+        all_weeks = Week.objects.filter(date__lt='2025-01-01')
+        
+        available_weeks = []
+        
+        for week in all_weeks:
+            week_date = week.date
+            wednesday_date = week_date - timedelta(days=(week_date.weekday() - 2))
+        # Converte para datetime às 12h
+            wednesday_cutoff = datetime.combine(wednesday_date, time(hour=12))
+            wednesday_cutoff_awere = timezone.make_aware(wednesday_cutoff) # Tornar a timezone aware
+            is_editable = now < wednesday_cutoff_awere
+            if is_editable and week.week_label not in editable_orders:
+                available_weeks.append(week)
+            
+        # Serializar as semanas disponíveis
+        serializer = WeekSerializer(available_weeks, many=True)
+        return Response(serializer.data)
+        
+        
+    
 

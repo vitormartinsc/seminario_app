@@ -13,15 +13,15 @@ const PRODUCTS = [
     'Browne'
 ];
 
-const WeekOrders = ({ weekLabel, index, date, orders, onSave }) => {
-    const [isEditing, setIsEditing] = useState(false)
-    const [quantities, setQuantities] = useState(() =>
+const WeekOrders = ({ weekLabel, index, date, orders, onSave, isCreating=false }) => {
+    const [isEditing, setIsEditing] = useState(isCreating)
+    const originalQuantities =
         PRODUCTS.reduce((acc, product) => {
             const existingOrder = orders[product];
             acc[product] = existingOrder ? existingOrder : 0;
             return acc
         }, {})
-    )
+   const [quantities, setQuantities] = useState(originalQuantities)
 
     const handleInputChange = (product, value) => {
         setQuantities((prev) => ({
@@ -44,13 +44,18 @@ const WeekOrders = ({ weekLabel, index, date, orders, onSave }) => {
             await api.post('/api/orders/update/', { orders: updatedOrders })
 
         } catch (error) {
-            console.error('Erro ao enviar os pedidos: ', error) 
-        }   
-    
+            console.error('Erro ao enviar os pedidos: ', error)
+        }
+
         onSave(updatedOrders);
         setIsEditing(false);
     }
-    
+
+    const handleCancel = () => {
+        setQuantities(originalQuantities)
+        setIsEditing(false)
+    }
+
     return (
         <Box
             sx={{
@@ -59,7 +64,7 @@ const WeekOrders = ({ weekLabel, index, date, orders, onSave }) => {
             }}
             key={weekLabel + index}
         >
-            
+
             <Typography variant="h6" sx={{ fontWeight: 'bold', marginBottom: 2 }}>
                 {weekLabel} ({format(date, 'dd/MM/yyyy')})
             </Typography>
@@ -102,17 +107,23 @@ const WeekOrders = ({ weekLabel, index, date, orders, onSave }) => {
 
                 })}
             </Grid>
-            <Box sx={{ marginTop: 2 }}>
+            <Box sx={{ marginTop: 2, display: 'flex', gap: 2 }}>
                 {isEditing ? (
-                    <Button variant="contained" color="primary" onClick={handleSave}>
-                        Salvar
-                    </Button>
+                    <>
+                        <Button variant="contained" color="primary" onClick={handleSave}>
+                            Salvar
+                        </Button>
+                        <Button variant="outlined" color="secondary" onClick={handleCancel}>
+                            Cancelar
+                        </Button>
+                    </>
                 ) : (
                     <Button variant="outlined" color="primary" onClick={() => setIsEditing(true)}>
                         Editar
                     </Button>
                 )}
             </Box>
+
 
         </Box >
     )

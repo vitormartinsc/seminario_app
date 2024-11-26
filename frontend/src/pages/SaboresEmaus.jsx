@@ -5,15 +5,17 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit'
 import WeekOrders from '../components/WeekOrders';
 import '../styles/ListItem.css';
+import NewWeekOrder from '../components/newWeekOrder';
 
 const SaboresEmaus = () => {
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [creatingNewWeekOrder, setCreatingNewWeekOrder] = useState(false)
 
     // Função para buscar os pedidos
     const fetchEditableOrders = async () => {
         setLoading(true);
-        
+
         try {
             const response = await api.get('/api/orders/editable/'); // Endpoint da API
             setOrders(response.data);
@@ -50,6 +52,7 @@ const SaboresEmaus = () => {
     // Função para criar o botão de Novo +
     const handleNewOrder = () => {
         console.log("Abrir modal ou página para criar novo pedido");
+        setCreatingNewWeekOrder(true);
         // Redirecionar para a página de novo pedido ou abrir um modal
     };
 
@@ -74,14 +77,22 @@ const SaboresEmaus = () => {
             </Typography>
 
             {/* Botão Novo + */}
-            <Button
-                variant="contained"
-                color="primary"
-                onClick={handleNewOrder}
-                sx={{ marginBottom: 3 }}
-            >
-                Novo +
-            </Button>
+            {creatingNewWeekOrder ? (
+                <NewWeekOrder />
+                
+            ) : (
+                <Button
+                    variant="contained"
+                    color="primary"
+                    onClick={handleNewOrder}
+                    sx={{ marginBottom: 3 }}
+                >
+                    Novo +
+                </Button>
+            )
+            }
+
+
 
             {/* Exibindo os pedidos agrupados por week_label */}
             {Object.keys(ordersGroupedByWeek).map((weekLabel, index) => (
