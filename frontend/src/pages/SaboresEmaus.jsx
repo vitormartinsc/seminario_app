@@ -35,11 +35,11 @@ const SaboresEmaus = () => {
     // Agrupar os pedidos por week_label e incluir a data da sexta-feira
     const groupOrdersByWeek = () => {
         return orders.reduce((acc, order) => {
-            const { week_label, date_of_delivery, product, quantity } = order;
+            const { week_label, date_of_delivery, product, quantity, editable } = order;
             const date = new Date(date_of_delivery + 'T00:00:00');
             // Se não existir o week_label, cria uma nova entrada no objeto
             if (!acc[week_label]) {
-                acc[week_label] = { date: date, orders: {} };
+                acc[week_label] = { date: date, orders: {}, editable: editable };
             }
 
             // Adiciona diretamente o produto ao grupo
@@ -52,23 +52,16 @@ const SaboresEmaus = () => {
     // Função para criar o botão de Novo +
     const handleNewOrder = () => {
         console.log("Abrir modal ou página para criar novo pedido");
-        setCreatingNewWeekOrder(true);
+        setCreatingNewWeekOrder(true)
         // Redirecionar para a página de novo pedido ou abrir um modal
     };
 
-    const handleEditOrder = () => {
-
-    }
-
-    const handleDeleteOrder = () => {
-
-    }
 
     if (loading) {
         return <Typography variant="h6">Carregando pedidos...</Typography>;
     }
 
-    const ordersGroupedByWeek = groupOrdersByWeek();
+    const ordersGroupedByWeek = groupOrdersByWeek()
 
     return (
         <Box sx={{ padding: 3 }}    >
@@ -78,7 +71,14 @@ const SaboresEmaus = () => {
 
             {/* Botão Novo + */}
             {creatingNewWeekOrder ? (
-                <NewWeekOrder />
+                <NewWeekOrder 
+                onClose={() => {
+                    window.location.reload()
+                    setCreatingNewWeekOrder(false)
+                }
+                }
+                
+                />
                 
             ) : (
                 <Button
@@ -105,6 +105,9 @@ const SaboresEmaus = () => {
                         fetchEditableOrders();
                         console.log('salvar para backend', updatedOrders);
                     }}
+                    editable={ordersGroupedByWeek[weekLabel].editable}
+
+                    
 
                 />
 

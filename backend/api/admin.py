@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Order
+from .models import Order, Week
 
 class OrderAdmin(admin.ModelAdmin):
     list_display = ('product', 'quantity', 'date_of_delivery', 'user', 'batch_id')
@@ -21,3 +21,4 @@ class OrderAdmin(admin.ModelAdmin):
             super().save_model(request, obj, form, change)
 
 admin.site.register(Order, OrderAdmin)
+admin.site.register(Week)

@@ -1,6 +1,6 @@
-import { Box, Grid, TextField, Typography, Button } from "@mui/material";
+import { Box, Grid, TextField, Typography, Button, Alert } from "@mui/material";
 import React, { useState } from "react";
-import { format } from 'date-fns'; // Usando date-fns para formatar a data
+import { format, toZonedTime } from 'date-fns-tz'; // Para lidar com fuso horário
 import api from "../api";
 
 const PRODUCTS = [
@@ -13,7 +13,10 @@ const PRODUCTS = [
     'Browne'
 ];
 
-const WeekOrders = ({ weekLabel, index, date, orders, onSave, isCreating=false }) => {
+const WeekOrders = ({
+    weekLabel, index, date, orders, onSave,
+    editable, isCreating = false
+}) => {
     const [isEditing, setIsEditing] = useState(isCreating)
     const originalQuantities =
         PRODUCTS.reduce((acc, product) => {
@@ -21,7 +24,9 @@ const WeekOrders = ({ weekLabel, index, date, orders, onSave, isCreating=false }
             acc[product] = existingOrder ? existingOrder : 0;
             return acc
         }, {})
-   const [quantities, setQuantities] = useState(originalQuantities)
+    const [quantities, setQuantities] = useState(originalQuantities)
+    const timeZone = 'America/Sao_Paulo'; // Ajuste o fuso horário para o Brasil
+    const zonedDate = toZonedTime(date, timeZone);
 
     const handleInputChange = (product, value) => {
         setQuantities((prev) => ({
@@ -31,7 +36,7 @@ const WeekOrders = ({ weekLabel, index, date, orders, onSave, isCreating=false }
     };
 
     const handleSave = async () => {
-        const formattedDate = format(date, 'yyyy-MM-dd')
+        const formattedDate = format(zonedDate, 'yyyy-MM-dd')
 
         const updatedOrders = PRODUCTS.map((product) => ({
             product,
@@ -66,7 +71,7 @@ const WeekOrders = ({ weekLabel, index, date, orders, onSave, isCreating=false }
         >
 
             <Typography variant="h6" sx={{ fontWeight: 'bold', marginBottom: 2 }}>
-                {weekLabel} ({format(date, 'dd/MM/yyyy')})
+                {weekLabel} ({format(zonedDate, 'dd/MM/yyyy')})
             </Typography>
             <Grid container spacing={2}>
                 {PRODUCTS.map((product) => {
@@ -118,9 +123,23 @@ const WeekOrders = ({ weekLabel, index, date, orders, onSave, isCreating=false }
                         </Button>
                     </>
                 ) : (
-                    <Button variant="outlined" color="primary" onClick={() => setIsEditing(true)}>
-                        Editar
-                    </Button>
+                    <>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                            <Button
+                                variant="outlined"
+                                color="primary"
+                                onClick={() => setIsEditing(true)}
+                                disabled={!editable}
+                            >
+                                Editar
+                            </Button>
+                            {!editable && (
+                                <Alert severity="info" sx={{ padding: 0.5 }}>
+                                    Edição só é permitida até a quarta-feira 12h anterior
+                                </Alert>
+                            )}
+                        </Box>
+                    </>
                 )}
             </Box>
 

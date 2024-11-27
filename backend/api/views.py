@@ -59,12 +59,10 @@ class UpdateOrderView(APIView):
         if not orders:
             return Response({'error': 'Nenhum pedido fornecido'}, status=status.HTTP_400_BAD_REQUEST)
                        
-        
         for order in orders:
             product = order.get('product')
             quantity = order.get('quantity')
             date_of_delivery = order.get('date_of_delivery')
-            breakpoint()
 
             if not product or not date_of_delivery:
                 return Response(
