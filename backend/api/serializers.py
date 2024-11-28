@@ -24,12 +24,23 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     def get_token(cls, user):
         token = super().get_token(user)
 
-        # Adicione custom claims
+        # Adiciona custom claims ao token JWT
         token['first_name'] = user.first_name
         token['last_name'] = user.last_name
-        # Adicione outros atributos conforme necessário
+        token['username'] = user.username  # Caso queira retornar o nome de usuário também
 
         return token
+
+    # Modificar a resposta para incluir os dados do usuário junto com o token
+    def validate(self, attrs):
+        data = super().validate(attrs)
+        user = self.user  # O usuário autenticado a partir do request
+
+        # Inclui os dados do usuário junto com o token
+        data['first_name'] = user.first_name
+        data['last_name'] = user.last_name
+        data['username'] = user.username
+        return data
     
 class CustomTokenRefreshSerializer(TokenRefreshSerializer):
     def validate(self, attrs):

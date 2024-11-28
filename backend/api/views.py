@@ -193,6 +193,15 @@ class availableDatesView(APIView):
         serializer = WeekSerializer(available_weeks, many=True)
         return Response(serializer.data)
         
-        
+class UserListView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request):
+        users = User.objects.all()
+        user_list = [
+            {"id": user.id, 'name': f'{user.first_name} {user.last_name}'}
+            for user in users
+        ]        
+        return Response(user_list)
     
 

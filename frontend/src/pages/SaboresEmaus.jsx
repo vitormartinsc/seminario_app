@@ -1,16 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import api from "../api";
-import { Box, Button, Typography, Paper } from '@mui/material';
+import { Box, Button, Typography, Grid, Tabs, Tab } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit'
 import WeekOrders from '../components/WeekOrders';
 import '../styles/ListItem.css';
 import NewWeekOrder from '../components/newWeekOrder';
+import OpenOrders from '../components/openOrders';
+Tabs
 
 const SaboresEmaus = () => {
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [creatingNewWeekOrder, setCreatingNewWeekOrder] = useState(false)
+    const [activeTab, setActiveTab] = useState('open-orders')
+
+    const handleTabChange = (event, newValue) => {
+        setActiveTab(newValue);
+    };
 
     // Função para buscar os pedidos
     const fetchEditableOrders = async () => {
@@ -56,6 +63,19 @@ const SaboresEmaus = () => {
         // Redirecionar para a página de novo pedido ou abrir um modal
     };
 
+    const handlePendingsView = () => {
+
+        setViewMode('pendings-orders')
+
+    }
+
+    const handleHistoryView = () => {
+
+        setViewMode('history-orders')
+
+    }
+
+
 
     if (loading) {
         return <Typography variant="h6">Carregando pedidos...</Typography>;
@@ -64,57 +84,78 @@ const SaboresEmaus = () => {
     const ordersGroupedByWeek = groupOrdersByWeek()
 
     return (
-        <Box sx={{ padding: 3 }}    >
-            <Typography variant="h4" gutterBottom>
-                Pedidos Agendados
-            </Typography>
+        <Box sx={{ padding: 3 }}>
+            <Tabs
+                value={activeTab}
+                onChange={handleTabChange}
+                indicatorColor="primary"
+                textColor="primary"
+                sx={{ marginBottom: 3 }}
+            >
+                <Tab label="Pedidos Agendados" value="open-orders" />
+                <Tab label="Solicitações" value="pending-orders" />
+                <Tab label="Histórico" value="history-orders" />
+            </Tabs>
 
-            {/* Botão Novo + */}
-            {creatingNewWeekOrder ? (
-                <NewWeekOrder 
-                onClose={() => {
-                    window.location.reload()
-                    setCreatingNewWeekOrder(false)
-                }
-                }
-                
-                />
-                
-            ) : (
-                <Button
-                    variant="contained"
-                    color="primary"
-                    onClick={handleNewOrder}
-                    sx={{ marginBottom: 3 }}
-                >
-                    Novo +
-                </Button>
-            )
-            }
+            {/* Conteúdo das Abas */}
+            {activeTab === "open-orders" && (
+                <Box>
+                    <Typography variant="h4" gutterBottom>
+                        Pedidos Agendados
+                    </Typography>
 
+                    {creatingNewWeekOrder ? (
+                        <NewWeekOrder
+                            onClose={(reload) => {
+                                if (reload) {
+                                    window.location.reload();
+                                }
+                                setCreatingNewWeekOrder(false);
+                            }}
+                        />
+                    ) : (
+                        <Grid container spacing={2} justifyContent="left" sx={{ mb: 2 }}>
+                            <Grid item>
+                                <Button
+                                    variant="contained"
+                                    color="primary"
+                                    onClick={() => setCreatingNewWeekOrder(true)} // Botão Novo +
+                                >
+                                    Novo +
+                                </Button>
+                            </Grid>
+                        </Grid>
+                    )}
 
+                    {/* Componentes de Pedidos Agendados */}
+                    <OpenOrders
+                        ordersGroupedByWeek={ordersGroupedByWeek}
+                        fetchEditableOrders={fetchEditableOrders}
+                    />
+                </Box>
+            )}
 
-            {/* Exibindo os pedidos agrupados por week_label */}
-            {Object.keys(ordersGroupedByWeek).map((weekLabel, index) => (
-                <WeekOrders
-                    weekLabel={weekLabel}
-                    index={index}
-                    date={ordersGroupedByWeek[weekLabel].date}
-                    orders={ordersGroupedByWeek[weekLabel].orders}
-                    onSave={(updatedOrders) => {
-                        fetchEditableOrders();
-                        console.log('salvar para backend', updatedOrders);
-                    }}
-                    editable={ordersGroupedByWeek[weekLabel].editable}
+            {activeTab === "pending-orders" && (
+                <Box>
+                    <Typography variant="h4" gutterBottom>
+                        Solicitações
+                    </Typography>
+                    {/* Conteúdo da aba Solicitações */}
+                    {/* <PendingOrders /> */}
+                </Box>
+            )}
 
-                    
-
-                />
-
-
-            ))}
+            {activeTab === "history-orders" && (
+                <Box>
+                    <Typography variant="h4" gutterBottom>
+                        Histórico
+                    </Typography>
+                    {/* Conteúdo da aba Histórico */}
+                    {/* <HistoryOrders /> */}
+                </Box>
+            )}
         </Box>
-    )
+    );
 
 };
 

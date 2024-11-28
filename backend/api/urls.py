@@ -8,5 +8,6 @@ urlpatterns = [
     path('orders/previous/summary/', views.PreviousOrdersSummaryView.as_view(), name='previous-orders-summary'),
     path('orders/editable/', views.EditableOrdersView.as_view(), name='editable-orders'),
     path('orders/update/', views.UpdateOrderView.as_view(), name='update-order'),
-    path('orders/available-dates/', views.availableDatesView.as_view(), name='available-dates')
+    path('orders/available-dates/', views.availableDatesView.as_view(), name='available-dates'),
+    path('users/', views.UserListView.as_view(), name='user-list')
 ]
