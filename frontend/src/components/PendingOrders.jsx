@@ -22,7 +22,8 @@ const PendingOrders = ({ pendingOrders, userNameList }) => {
         return ordersCreatedByUser.reduce((acc, order) => {
             const { week_label, date_of_delivery, product, quantity, editable, recipient, status } = order;
             const date = new Date(date_of_delivery + 'T00:00:00');
-    
+            const recipientName = userNameList.find((user) => user.id === recipient).name;
+            console.log(recipient)
             // Se não existir o week_label, cria uma nova entrada no objeto
             if (!acc[week_label]) {
                 acc[week_label] = {
@@ -33,17 +34,17 @@ const PendingOrders = ({ pendingOrders, userNameList }) => {
             }
     
             // Se não existir o recipient, cria uma entrada para ele
-            if (!acc[week_label].orders[recipient]) {
-                acc[week_label].orders[recipient] = {};
+            if (!acc[week_label].orders[recipientName]) {
+                acc[week_label].orders[recipientName] = {};
             }
     
             // Se não existir o status dentro do recipient, cria uma entrada para ele
-            if (!acc[week_label].orders[recipient][status]) {
-                acc[week_label].orders[recipient][status] = [];
+            if (!acc[week_label].orders[recipientName][status]) {
+                acc[week_label].orders[recipientName][status] = [];
             }
     
             // Adiciona o pedido no grupo correto (dentro de recipient e status)
-            acc[week_label].orders[recipient][status].push({
+            acc[week_label].orders[recipientName][status].push({
                 product,
                 quantity,
                 date,
