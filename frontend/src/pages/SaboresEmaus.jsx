@@ -11,6 +11,7 @@ Tabs
 
 const SaboresEmaus = () => {
     const [orders, setOrders] = useState([]);
+    const [PendingOrders, setPendingOrders] = useState([])
     const [loading, setLoading] = useState(true);
     const [creatingNewWeekOrder, setCreatingNewWeekOrder] = useState(false)
     const [activeTab, setActiveTab] = useState('open-orders')
@@ -34,9 +35,26 @@ const SaboresEmaus = () => {
         }
     };
 
+    // Função para buscar os pedidos pendentes
+    const fetchPendingOrders = async () => {
+        setLoading(true);
+
+        try {
+            const response = await api.get('/api/orders/pending/'); // Endpoint da API
+            setPendingOrders(response.data);
+            //window.orders = response.data
+            setLoading(false);
+        } catch (error) {
+            console.error("Erro ao buscar pedidos", error);
+            setLoading(false);
+        }
+    };
+
+
     // Chama a função para buscar os pedidos quando o componente for montado
     useEffect(() => {
         fetchEditableOrders();
+        fetchPendingOrders();
     }, []);
 
     // Agrupar os pedidos por week_label e incluir a data da sexta-feira

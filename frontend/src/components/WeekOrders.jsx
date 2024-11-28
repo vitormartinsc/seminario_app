@@ -15,7 +15,7 @@ const PRODUCTS = [
 
 const WeekOrders = ({
     weekLabel, index, date, orders, onSave,
-    editable, isCreating = false
+    editable, isPendingOrder, isCreating = false
 }) => {
     const [isEditing, setIsEditing] = useState(isCreating)
     const originalQuantities =

@@ -11,6 +11,7 @@ const NewWeekOrder = ({ onClose }) => {
     const [userNameList, setUserNameList] = useState([]);
     const [selectedUser, setSelectedUser] = useState('');
     const [currentUser, setCurrentUser] = useState('')
+    const [isPendingOrder, setisPendingOrder] = useState(false)
 
     const timeZone = 'America/Sao_Paulo'; // Ajuste o fuso horário para o Brasil
 
@@ -53,11 +54,22 @@ const NewWeekOrder = ({ onClose }) => {
         setSelectedWeek(week);
     };
 
-    const handleCreateOrder = async () => {
+    const handleCreateOrder = (orderType) => {
         if (!selectedWeek) {
             alert('Selecione uma semana!');
             return;
         }
+
+        if (orderType === 'comum-order') {
+            
+            setisPendingOrder(false)
+
+        } else if (orderType === 'pending-order') {
+
+            setisPendingOrder(true)
+
+        } 
+
         setHasCreatedOrder(true);
     };
 
@@ -143,7 +155,7 @@ const NewWeekOrder = ({ onClose }) => {
                         {selectedUser === currentUser ? (
                            <Button
                            variant="outlined"
-                           onClick={handleCreateOrder}
+                           onClick={() => handleCreateOrder('comum-order')}
                            sx={{
                                marginBottom: 3,
                                border: '2px solid #66BB6A',  // Borda verde suave
@@ -159,7 +171,7 @@ const NewWeekOrder = ({ onClose }) => {
                        
                        <Button
                            variant="outlined"
-                           onClick={handleCreateOrder}
+                           onClick={() => handleCreateOrder('pending-order')}
                            sx={{
                                marginBottom: 3,
                                border: '2px solid #FFEB3B',  // Borda amarela suave
@@ -195,6 +207,7 @@ const NewWeekOrder = ({ onClose }) => {
                     }}
                     isCreating={true}
                     editable={true}
+                    isPendingOrder={isPendingOrder}
                 />
             )}
         </Box>

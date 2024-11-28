@@ -6,8 +6,8 @@ from django.utils import timezone
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
-from .serializers import CustomTokenObtainPairSerializer, CustomTokenRefreshSerializer, OrderSerializer, WeekSerializer
-from .models import Week, Order
+from .serializers import CustomTokenObtainPairSerializer, CustomTokenRefreshSerializer, OrderSerializer, WeekSerializer, PendingOrderSerializer
+from .models import Order, PendingOrder, Week
 from rest_framework.views import APIView
 from datetime import datetime, timedelta, time
 import uuid
@@ -117,6 +117,13 @@ class OrdersView(generics.ListAPIView):
     
     def get_queryset(self):
         return Order.objects.filter(user=self.request.user).order_by('-date_of_delivery')
+    
+class PendingOrdersView(generics.ListAPIView):
+    serializer_class = PendingOrderSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def get_queryset(self):
+        return PendingOrder.objects.filter(requester=self.request.user).order_by('-date_of_delivery')
     
 class EditableOrdersView(generics.ListAPIView):
     serializer_class = OrderSerializer

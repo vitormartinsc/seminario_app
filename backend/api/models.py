@@ -60,7 +60,7 @@ class Order(models.Model):
                 self.week_label = week.week_label # Define a sexta-feira correspondente como date_of_delivery
             except Week.DoesNotExist:
                 # Se a semana não existir, cria uma nova semana
-                raise ValueError(f"A semana com o label {self.week_label} não existe.")
+                raise ValueError(f"A semana com a data {self.date_of_delivery} não existe.")
         
         super().save(*args, **kwargs)  # Salva o objeto
     
@@ -80,3 +80,43 @@ class Week(models.Model):
 
     def __str__(self):
         return f"{self.week_label} ({self.date})"
+
+class PendingOrder(models.Model):
+    PRODUCT_CHOICES = [
+        ('Tradicional', 'Tradicional'),
+        ('Tradicional Sem Açúcar', 'Tradicional Sem Açúcar'),
+        ('Cenoura com Chocolate', 'Cenoura com Chocolate'),
+        ('Farofa', 'Farofa'),
+        ('Antepasto', 'Antepasto'),
+        ('Brioche', 'Brioche'),
+        ('Browne', 'Browne')
+    ]
+
+    product = models.CharField(max_length=50, choices=PRODUCT_CHOICES)
+    quantity = models.PositiveIntegerField()
+    date = models.DateTimeField(default=timezone.now)
+    requester = models.ForeignKey(User, on_delete=models.CASCADE, related_name='requested_orders')
+    recipient = models.ForeignKey(User, on_delete=models.CASCADE, related_name='pending_orders')
+    status = models.CharField(
+        max_length=20,
+        choices=[('pending', 'Pending'), ('approved', 'Approved'), ('rejected', 'Rejected')],
+        default='pending'
+    )
+    week_label = models.CharField(max_length=50, blank=True, null=True)
+    date_of_delivery = models.DateField(blank=True, null=True)
+
+    def save(self, *args, **kwargs):
+    # Se o date_of_delivery for fornecido, buscar a semana correspondente e definir date_of_delivery
+        if self.date_of_delivery:
+            try:
+                # Encontra a semana com base no week_label
+                week = Week.objects.get(date=self.date_of_delivery)
+                self.week_label = week.week_label # Define a sexta-feira correspondente como date_of_delivery
+            except Week.DoesNotExist:
+            # Se a semana não existir, cria uma nova semana
+                raise ValueError(f"A semana com a data {self.date_of_delivery} não existe.")
+    
+            super().save(*args, **kwargs)  # Salva o objeto
+
+    def __str__(self):
+        return f"{self.product} - {self.quantity} unit(s) - Status: {self.status}"
