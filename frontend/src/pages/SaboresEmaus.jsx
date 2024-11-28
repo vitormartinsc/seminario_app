@@ -7,14 +7,16 @@ import WeekOrders from '../components/WeekOrders';
 import '../styles/ListItem.css';
 import NewWeekOrder from '../components/newWeekOrder';
 import OpenOrders from '../components/openOrders';
-Tabs
+import PendingOrders from '../components/PendingOrders';
+
 
 const SaboresEmaus = () => {
     const [orders, setOrders] = useState([]);
-    const [PendingOrders, setPendingOrders] = useState([])
+    const [pendingOrders, setPendingOrders] = useState([])
     const [loading, setLoading] = useState(true);
     const [creatingNewWeekOrder, setCreatingNewWeekOrder] = useState(false)
     const [activeTab, setActiveTab] = useState('open-orders')
+    const [userNameList, setUserNameList] = useState([]);
 
     const handleTabChange = (event, newValue) => {
         setActiveTab(newValue);
@@ -50,11 +52,24 @@ const SaboresEmaus = () => {
         }
     };
 
+    const fetchUserNameList = async () => {
+
+        try {
+            const response = await api.get('/api/users/')
+            setUserNameList(response.data);
+            window.users = response.data
+
+        } catch (error) {
+            console.error('Erro ao buscar usuários')
+        }
+
+    }
 
     // Chama a função para buscar os pedidos quando o componente for montado
     useEffect(() => {
         fetchEditableOrders();
         fetchPendingOrders();
+        fetchUserNameList();
     }, []);
 
     // Agrupar os pedidos por week_label e incluir a data da sexta-feira
@@ -73,27 +88,6 @@ const SaboresEmaus = () => {
             return acc;
         }, {});
     };
-
-    // Função para criar o botão de Novo +
-    const handleNewOrder = () => {
-        console.log("Abrir modal ou página para criar novo pedido");
-        setCreatingNewWeekOrder(true)
-        // Redirecionar para a página de novo pedido ou abrir um modal
-    };
-
-    const handlePendingsView = () => {
-
-        setViewMode('pendings-orders')
-
-    }
-
-    const handleHistoryView = () => {
-
-        setViewMode('history-orders')
-
-    }
-
-
 
     if (loading) {
         return <Typography variant="h6">Carregando pedidos...</Typography>;
@@ -130,6 +124,7 @@ const SaboresEmaus = () => {
                                 }
                                 setCreatingNewWeekOrder(false);
                             }}
+                            userNameList={userNameList}
                         />
                     ) : (
                         <Grid container spacing={2} justifyContent="left" sx={{ mb: 2 }}>
@@ -159,7 +154,10 @@ const SaboresEmaus = () => {
                         Solicitações
                     </Typography>
                     {/* Conteúdo da aba Solicitações */}
-                    {/* <PendingOrders /> */}
+                    <PendingOrders 
+                    pendingOrders={pendingOrders}
+                    userNameList={userNameList}
+                    /> 
                 </Box>
             )}
 

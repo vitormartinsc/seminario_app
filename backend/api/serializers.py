@@ -25,6 +25,7 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         token = super().get_token(user)
 
         # Adiciona custom claims ao token JWT
+        token['id'] = user.id
         token['first_name'] = user.first_name
         token['last_name'] = user.last_name
         token['username'] = user.username  # Caso queira retornar o nome de usuário também
@@ -37,6 +38,7 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         user = self.user  # O usuário autenticado a partir do request
 
         # Inclui os dados do usuário junto com o token
+        data['id'] = user.id
         data['first_name'] = user.first_name
         data['last_name'] = user.last_name
         data['username'] = user.username
@@ -48,6 +50,7 @@ class CustomTokenRefreshSerializer(TokenRefreshSerializer):
         
         # Adicionando dados do usuário na resposta (first_name e last_name)
         user = self.context['request'].user
+        data['id'] = user.id
         data['first_name'] = user.first_name
         data['last_name'] = user.last_name
         data['username'] = user.username  # Se necessário, inclua o nome de usuário também
@@ -98,6 +101,8 @@ class OrderSerializer(serializers.ModelSerializer):
             return Order.objects.create(user=user, **validated_data)
         
 class PendingOrderSerializer(serializers.ModelSerializer):
+    editable = serializers.SerializerMethodField()  # Adiciona o campo editable calculado
+
     class Meta:
         model = PendingOrder
         fields = ['id', 'product', 'quantity', 'date', 'requester', 'recipient', 'status', 'date_of_delivery', 'week_label', 'editable']

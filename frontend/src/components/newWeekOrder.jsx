@@ -4,11 +4,10 @@ import { Box, Select, MenuItem, Button, Typography, Stack } from '@mui/material'
 import api from "../api";
 import WeekOrders from './WeekOrders';
 
-const NewWeekOrder = ({ onClose }) => {
+const NewWeekOrder = ({ onClose, userNameList }) => {
     const [availableWeeks, setAvailableWeeks] = useState([]);
     const [selectedWeek, setSelectedWeek] = useState(null);
     const [hasCreatedOrder, setHasCreatedOrder] = useState(false);
-    const [userNameList, setUserNameList] = useState([]);
     const [selectedUser, setSelectedUser] = useState('');
     const [currentUser, setCurrentUser] = useState('')
     const [isPendingOrder, setisPendingOrder] = useState(false)
@@ -23,7 +22,6 @@ const NewWeekOrder = ({ onClose }) => {
             setCurrentUser(currentUser);
         }
         fetchAvailableWeeks();
-        fetchUserNameList();
     }, []);
 
 
@@ -36,18 +34,6 @@ const NewWeekOrder = ({ onClose }) => {
         }
     };
 
-    const fetchUserNameList = async () => {
-
-        try {
-            const response = await api.get('/api/users/')
-            setUserNameList(response.data);
-            window.users = response.data
-
-        } catch (error) {
-            console.error('Erro ao buscar usuários')
-        }
-
-    }
 
     const handleWeekChange = (value) => {
         const week = JSON.parse(value);
@@ -55,6 +41,7 @@ const NewWeekOrder = ({ onClose }) => {
     };
 
     const handleCreateOrder = (orderType) => {
+        
         if (!selectedWeek) {
             alert('Selecione uma semana!');
             return;

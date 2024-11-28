@@ -1,4 +1,4 @@
-from django.db.models import Sum
+from django.db.models import Sum, Q
 from django.contrib.auth.models import User
 from rest_framework import generics, status
 from .serializers import UserSerializer
@@ -123,7 +123,9 @@ class PendingOrdersView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
     
     def get_queryset(self):
-        return PendingOrder.objects.filter(requester=self.request.user).order_by('-date_of_delivery')
+        return PendingOrder.objects.filter(
+            Q(requester=self.request.user) | Q(recipient=self.request.user)
+            ).order_by('-date_of_delivery')
     
 class EditableOrdersView(generics.ListAPIView):
     serializer_class = OrderSerializer
