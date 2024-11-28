@@ -10,15 +10,16 @@ const NewWeekOrder = ({ onClose }) => {
     const [hasCreatedOrder, setHasCreatedOrder] = useState(false);
     const [userNameList, setUserNameList] = useState([]);
     const [selectedUser, setSelectedUser] = useState('');
-    const [currentUserName, setCurrentUserName] = useState('')
+    const [currentUser, setCurrentUser] = useState('')
 
     const timeZone = 'America/Sao_Paulo'; // Ajuste o fuso horário para o Brasil
 
     useEffect(() => {
         const user = JSON.parse(localStorage.getItem("user"));
         if (user) {
-            const currentUserName = `${user.first_name} ${user.last_name}`;
-            setSelectedUser(currentUserName);  
+            const currentUser = (`${user.first_name} ${user.last_name}`)
+            setSelectedUser(currentUser);
+            setCurrentUser(currentUser);
         }
         fetchAvailableWeeks();
         fetchUserNameList();
@@ -81,9 +82,16 @@ const NewWeekOrder = ({ onClose }) => {
         <Box>
             {!hasCreatedOrder ? (
                 <Box>
-                    <Typography variant="h6" gutterBottom>
-                        Criar Novo Pedido
-                    </Typography>
+                    {selectedUser === currentUser ? (
+                        <Typography variant="h6" gutterBottom>
+                            Criar Novo Pedido
+                        </Typography>
+                    ) : (
+                        <Typography variant="h6" gutterBottom>
+                            Criar Nova Solicitação
+                        </Typography>
+                    )}
+
                     {/* Select para selecionar uma semana */}
                     <Select
                         value={selectedWeek ? JSON.stringify(selectedWeek) : ''}
@@ -131,13 +139,41 @@ const NewWeekOrder = ({ onClose }) => {
 
                     <Stack spacing={2} direction="row" justifyContent="left"
                         sx={{ mb: 3 }}>
-                        <Button
-                            variant="contained"
-                            onClick={handleCreateOrder}
-                            sx={{ marginBottom: 3 }}
-                        >
-                            Criar Pedido
-                        </Button>
+
+                        {selectedUser === currentUser ? (
+                           <Button
+                           variant="outlined"
+                           onClick={handleCreateOrder}
+                           sx={{
+                               marginBottom: 3,
+                               border: '2px solid #66BB6A',  // Borda verde suave
+                               '&:hover': {
+                                   backgroundColor: '#81C784',  // Verde mais forte no hover
+                                   borderColor: '#388E3C',  // Borda mais escura no hover
+                               },
+                           }}
+                       >
+                           Criar Pedido
+                       </Button>
+                        ):(
+                       
+                       <Button
+                           variant="outlined"
+                           onClick={handleCreateOrder}
+                           sx={{
+                               marginBottom: 3,
+                               border: '2px solid #FFEB3B',  // Borda amarela suave
+                               '&:hover': {
+                                   backgroundColor: '#FFEE58',  // Amarelo mais forte no hover
+                                   borderColor: '#FBC02D',  // Borda mais escura no hover
+                               },
+                           }}
+                       >
+                           Criar Solicitação
+                       </Button>
+                        )
+                    }
+
                         <Button
                             variant="outlined"
                             color='secondary'
