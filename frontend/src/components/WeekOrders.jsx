@@ -15,8 +15,10 @@ const PRODUCTS = [
 
 const WeekOrders = ({
     weekLabel, index, date, orders, onSave,
-    editable, isPendingOrder, isCreating = false
+    editable, isPendingOrder, isCreating = false,
+    receiver = null, status = null
 }) => {
+    console.log(orders);    
     const [isEditing, setIsEditing] = useState(isCreating)
     const originalQuantities =
         PRODUCTS.reduce((acc, product) => {
@@ -27,6 +29,9 @@ const WeekOrders = ({
     const [quantities, setQuantities] = useState(originalQuantities)
     const timeZone = 'America/Sao_Paulo'; // Ajuste o fuso horário para o Brasil
     const zonedDate = toZonedTime(date, timeZone);
+    const Key = isPendingOrder ? (weekLabel + index) : (
+        weekLabel + receiver + status
+    )
 
     const handleInputChange = (product, value) => {
         setQuantities((prev) => ({
@@ -67,7 +72,7 @@ const WeekOrders = ({
                 marginBottom: 3, padding: 2, border: '1px solid #ddd',
                 borderRadius: '8px'
             }}
-            key={weekLabel + index}
+            key={Key}
         >
 
             <Typography variant="h6" sx={{ fontWeight: 'bold', marginBottom: 2 }}>
@@ -82,7 +87,7 @@ const WeekOrders = ({
                     }
 
                     return (
-                        <Grid item xs={12} sm={6} key={product} sx={{ display: 'flex', alignItems: 'center' }}>
+                        <Grid item xs={12} sm={6} key={product + quantity} sx={{ display: 'flex', alignItems: 'center' }}>
                             <Typography variant="subtitle1" sx={{ fontWeight: 'bold', flexShrink: 0 }}>
                                 {product}
                             </Typography>

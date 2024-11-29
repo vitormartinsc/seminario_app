@@ -1,19 +1,18 @@
 import React from "react";
 import WeekOrders from "./WeekOrders"; // Certifique-se de que este caminho está correto
 
-const OpenOrders = ({ ordersGroupedByWeek, fetchEditableOrders }) => {
+const OpenOrders = ({ ordersGroupedByWeek }) => {
     return (
         <div>
             {/* Exibindo os pedidos agrupados por week_label */}
             {Object.keys(ordersGroupedByWeek).map((weekLabel, index) => (
                 <WeekOrders
-                    key={weekLabel} // Adicione uma chave única para ajudar o React na renderização
+                    index={index} // Adicione uma chave única para ajudar o React na renderização
                     weekLabel={weekLabel}
-                    index={index}
+                    key={weekLabel}
                     date={ordersGroupedByWeek[weekLabel].date}
                     orders={ordersGroupedByWeek[weekLabel].orders}
                     onSave={(updatedOrders) => {
-                        fetchEditableOrders();
                         console.log("Salvar para backend", updatedOrders);
                     }}
                     editable={ordersGroupedByWeek[weekLabel].editable}
