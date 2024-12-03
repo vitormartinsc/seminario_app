@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { format, toZonedTime } from 'date-fns-tz'; // Para lidar com fuso horário
-import { Box, Select, MenuItem, Button, Typography, Stack } from '@mui/material';
+import { format, toZonedTime } from 'date-fns-tz';
+import { Box, Select, MenuItem, Button, Typography, Stack, Dialog, DialogActions, DialogContent, DialogTitle } from '@mui/material';
 import api from "../api";
 import WeekOrders from './WeekOrders';
 
@@ -9,21 +9,21 @@ const NewWeekOrder = ({ onClose, userNameList }) => {
     const [selectedWeek, setSelectedWeek] = useState(null);
     const [hasCreatedOrder, setHasCreatedOrder] = useState(false);
     const [selectedUser, setSelectedUser] = useState('');
-    const [currentUser, setCurrentUser] = useState('')
-    const [isPendingOrder, setisPendingOrder] = useState(false)
+    const [currentUser, setCurrentUser] = useState('');
+    const [isPendingOrder, setIsPendingOrder] = useState(false);
+    const [orderType, setOrderType] = useState('comum-order');  // Novo estado para definir o tipo de pedido (agendar ou solicitar)
+    const [open, setOpen] = useState(true); // Controla a exibição do modal
 
-    const timeZone = 'America/Sao_Paulo'; // Ajuste o fuso horário para o Brasil
+    const timeZone = 'America/Sao_Paulo';
 
     useEffect(() => {
         const user = JSON.parse(localStorage.getItem("user"));
         if (user) {
-            const currentUser = (`${user.first_name} ${user.last_name}`)
-            setSelectedUser(currentUser);
+            const currentUser = `${user.first_name} ${user.last_name}`;
             setCurrentUser(currentUser);
         }
         fetchAvailableWeeks();
     }, []);
-
 
     const fetchAvailableWeeks = async () => {
         try {
@@ -34,33 +34,31 @@ const NewWeekOrder = ({ onClose, userNameList }) => {
         }
     };
 
-
     const handleWeekChange = (value) => {
         const week = JSON.parse(value);
         setSelectedWeek(week);
     };
 
     const handleCreateOrder = (orderType) => {
-        
         if (!selectedWeek) {
             alert('Selecione uma semana!');
+            return;
+        } 
+
+        if (orderType === 'pending-order' && !selectedUser) {
+            alert('Selecione um usuário!');
             return;
         }
 
         if (orderType === 'comum-order') {
-            
-            setisPendingOrder(false)
-
+            setIsPendingOrder(false);
         } else if (orderType === 'pending-order') {
-
-            setisPendingOrder(true)
-
-        } 
+            setIsPendingOrder(true);
+        }
 
         setHasCreatedOrder(true);
     };
 
-    // Formata as semanas disponíveis no fuso horário correto
     const formattedWeeks = useMemo(() => {
         return availableWeeks.map((week) => {
             const zonedDate = toZonedTime(week.date, timeZone);
@@ -71,133 +69,129 @@ const NewWeekOrder = ({ onClose, userNameList }) => {
         });
     }, [availableWeeks]);
 
-    window.availableWeeks = availableWeeks
-
     const handleUserChange = (userName) => {
-        setSelectedUser(userName)
+        setSelectedUser(userName);
     };
 
+    // Filtra o usuário atual da lista de nomes
+    const filteredUserList = userNameList.filter((user) => user.name !== currentUser);
+
     return (
-        <Box>
-            {!hasCreatedOrder ? (
-                <Box>
-                    {selectedUser === currentUser ? (
-                        <Typography variant="h6" gutterBottom>
-                            Criar Novo Pedido
-                        </Typography>
-                    ) : (
-                        <Typography variant="h6" gutterBottom>
-                            Criar Nova Solicitação
-                        </Typography>
-                    )}
-
-                    {/* Select para selecionar uma semana */}
-                    <Select
-                        value={selectedWeek ? JSON.stringify(selectedWeek) : ''}
-                        onChange={(e) => handleWeekChange(e.target.value)}
-                        fullWidth
-                        displayEmpty
-                        sx={{ marginBottom: 2 }}
-                    >
-                        <MenuItem value="" disabled>
-                            Selecione uma semana
-                        </MenuItem>
-                        {formattedWeeks.map((week) => (
-                            <MenuItem
-                                key={week.week_label}
-                                value={JSON.stringify({
-                                    week_label: week.week_label,
-                                    date: week.date,
-                                })}
-                            >
-                                {week.week_label} ({week.formattedDate})
-                            </MenuItem>
-                        ))}
-                    </Select>
-                    {/* Select para selecionar um usuário */}
-                    <Select
-                        value={userNameList.length > 0 ? selectedUser : ""}
-                        onChange={(e) => handleUserChange(e.target.value)}  // Alterado para onChange
-                        fullWidth
-                        displayEmpty
-                        sx={{ mb: 2 }}
-                    >
-                        {userNameList && userNameList.length > 0 ? (
-                            userNameList.map((user) => (
-                                <MenuItem
-                                    key={user.id}
-                                    value={user.name}  // Passando o ID do usuário como value
-                                >
-                                    {user.name}  {/* Exibe o nome completo */}
-                                </MenuItem>
-                            ))
-                        ) : (
-                            <MenuItem disabled>Sem usuários disponíveis</MenuItem>
-                        )}
-                    </Select>
-
-                    <Stack spacing={2} direction="row" justifyContent="left"
-                        sx={{ mb: 3 }}>
-
-                        {selectedUser === currentUser ? (
-                           <Button
-                           variant="outlined"
-                           onClick={() => handleCreateOrder('comum-order')}
-                           sx={{
-                               marginBottom: 3,
-                               border: '2px solid #66BB6A',  // Borda verde suave
-                               '&:hover': {
-                                   backgroundColor: '#81C784',  // Verde mais forte no hover
-                                   borderColor: '#388E3C',  // Borda mais escura no hover
-                               },
-                           }}
-                       >
-                           Criar Pedido
-                       </Button>
-                        ):(
-                       
-                       <Button
-                           variant="outlined"
-                           onClick={() => handleCreateOrder('pending-order')}
-                           sx={{
-                               marginBottom: 3,
-                               border: '2px solid #FFEB3B',  // Borda amarela suave
-                               '&:hover': {
-                                   backgroundColor: '#FFEE58',  // Amarelo mais forte no hover
-                                   borderColor: '#FBC02D',  // Borda mais escura no hover
-                               },
-                           }}
-                       >
-                           Criar Solicitação
-                       </Button>
-                        )
-                    }
-
-                        <Button
-                            variant="outlined"
-                            color='secondary'
-                            onClick={() => onClose(false)}
-                            sx={{ marginBottom: 3 }}
+        <Dialog open={open} onClose={() => onClose(false)} maxWidth="sm" fullWidth>
+            <DialogTitle>
+                {orderType === 'comum-order' ? 'Criar Novo Pedido' : 'Criar Nova Solicitação'}
+            </DialogTitle>
+            <DialogContent>
+                {!hasCreatedOrder ? (
+                    <Box>
+                        {/* Seleção do tipo de pedido (agendar ou solicitar) */}
+                        <Select
+                            value={orderType}
+                            onChange={(e) => setOrderType(e.target.value)}
+                            fullWidth
+                            sx={{ marginBottom: 2 }}
                         >
-                            Cancelar
-                        </Button>
-                    </Stack>
-                </Box>
-            ) : (
-                <WeekOrders
-                    weekLabel={selectedWeek.week_label}
-                    date={selectedWeek.date}
-                    orders={{}}
-                    onSave={(newOrder) => {
-                        console.log('Salvar para backend:', newOrder);
-                        onClose(true)
-                    }}
-                    isCreating={true}
-                    editable={true}
-                    isPendingOrder={isPendingOrder}
-                />
-            )}
-        </Box>
+                            <MenuItem value="comum-order">Agendar Pedido</MenuItem>
+                            <MenuItem value="pending-order">Fazer Solicitação</MenuItem>
+                        </Select>
+
+                        {/* Se o pedido for uma solicitação, exibe o campo de seleção de usuário */}
+                        {orderType === 'pending-order' && (
+                            <Select
+                                value={selectedUser || ""}
+                                onChange={(e) => handleUserChange(e.target.value)}
+                                fullWidth
+                                displayEmpty
+                                sx={{ mb: 2 }}
+                            >
+                                <MenuItem value="" disabled>Selecione um usuário</MenuItem>
+                                {filteredUserList.length > 0 ? (
+                                    filteredUserList.map((user) => (
+                                        <MenuItem key={user.id} value={user.name}>
+                                            {user.name}
+                                        </MenuItem>
+                                    ))
+                                ) : (
+                                    <MenuItem disabled>Sem usuários disponíveis</MenuItem>
+                                )}
+                            </Select>
+                        )}
+
+                        {/* Seleção da semana */}
+                        <Select
+                            value={selectedWeek ? JSON.stringify(selectedWeek) : ''}
+                            onChange={(e) => handleWeekChange(e.target.value)}
+                            fullWidth
+                            displayEmpty
+                            sx={{ marginBottom: 2 }}
+                        >
+                            <MenuItem value="" disabled>Selecione uma semana</MenuItem>
+                            {formattedWeeks.map((week) => (
+                                <MenuItem key={week.week_label} value={JSON.stringify(week)}>
+                                    {week.week_label} ({week.formattedDate})
+                                </MenuItem>
+                            ))}
+                        </Select>
+
+                        <Stack spacing={2} direction="row" justifyContent="left" sx={{ mb: 3 }}>
+                            {orderType === 'comum-order' ? (
+                                <Button
+                                    variant="outlined"
+                                    onClick={() => handleCreateOrder('comum-order')}
+                                    sx={{
+                                        marginBottom: 3,
+                                        border: '2px solid #66BB6A',
+                                        '&:hover': { backgroundColor: '#81C784', borderColor: '#388E3C' },
+                                    }}
+                                >
+                                    Criar Pedido
+                                </Button>
+                            ) : (
+                                <Button
+                                    variant="outlined"
+                                    onClick={() => handleCreateOrder('pending-order')}
+                                    sx={{
+                                        marginBottom: 3,
+                                        border: '2px solid #FFEB3B',
+                                        '&:hover': { backgroundColor: '#FFEE58', borderColor: '#FBC02D' },
+                                    }}
+                                >
+                                    Criar Solicitação
+                                </Button>
+                            )}
+
+                            <Button
+                                variant="outlined"
+                                color="secondary"
+                                onClick={() => { onClose(false); setOpen(false); }}
+                                sx={{ marginBottom: 3 }}
+                            >
+                                Cancelar
+                            </Button>
+                        </Stack>
+                    </Box>
+                ) : (
+                    <WeekOrders
+                        weekLabel={selectedWeek.week_label}
+                        date={selectedWeek.date}
+                        orders={{}}
+                        onSave={(newOrder, shouldReload) => {
+                            console.log('Salvar para backend:', newOrder);
+                            onClose(shouldReload);
+                            setOpen(false);
+                        }}
+                        isCreating={true}
+                        editable={true}
+                        isPendingOrder={isPendingOrder}
+                    />
+                )}
+            </DialogContent>
+            <DialogActions>
+                <Button onClick={() => { onClose(false); setOpen(false); }} color="primary">
+                    Fechar
+                </Button>
+            </DialogActions>
+        </Dialog>
     );
 };
 

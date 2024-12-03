@@ -17,75 +17,76 @@ const PendingOrders = ({ pendingOrders, userNameList }) => {
         setActiveTab(newValue);
     };
 
-    const groupOrdersByWeek = (pendingOrders) => {
+    const groupOrdersByWeek = (pendingOrders, pendencyType) => {
         return pendingOrders.reduce((acc, order) => {
-            const { week_label, date_of_delivery, product, quantity, editable, recipient, status } = order;
+            const { week_label, date_of_delivery, product, quantity, editable, status } = order;
+            const userPendency = order[pendencyType]
             const date = new Date(date_of_delivery + 'T00:00:00');
-            const recipientName = userNameList.find((user) => user.id === recipient).name;
+            const userPendencyName = userNameList.find((user) => user.id === userPendency).name;
             // Se não existir o week_label, cria uma nova entrada no objeto
             if (!acc[week_label]) {
-                acc[week_label] = {
-                    date: date,
-                    orders: {}, // Aqui vai armazenar agrupamentos por recipient e status
-                    editable: editable,
-                };
+                acc[week_label] = {}
             }
 
-            // Se não existir o recipient, cria uma entrada para ele
-            if (!acc[week_label].orders[recipientName]) {
-                acc[week_label].orders[recipientName] = {};
+            // Se não existir o userPendency, cria uma entrada para ele
+            if (!acc[week_label][userPendencyName]) {
+                acc[week_label][userPendencyName] = {};
             }
 
-            // Se não existir o status dentro do recipient, cria uma entrada para ele
-            if (!acc[week_label].orders[recipientName][status]) {
-                acc[week_label].orders[recipientName][status] = [];
+            // Se não existir o status dentro do userPendency, cria uma entrada para ele
+            if (!acc[week_label][userPendencyName][status]) {
+                acc[week_label][userPendencyName][status] = [];
             }
 
-            // Adiciona o pedido no grupo correto (dentro de recipient e status)
-            acc[week_label].orders[recipientName][status].push({
-                product,
-                quantity,
-                date,
-                editable,
-            });
+            // Adiciona o pedido no grupo correto (dentro de userPendency e status)
+            acc[week_label][userPendencyName][status] = {
+                date: date,
+                orders: {},
+                editable: editable,
+                week_label: week_label,
+                userPendency: userPendency
+            };
 
+            acc[week_label][userPendencyName][status].orders[product] = quantity
             return acc;
         }, {});
     };
 
-    const groupedOrdersCreatedByUser = groupOrdersByWeek(ordersCreatedByUser);
-    const groupedOrdersAssignedToUser = groupOrdersByWeek(ordersAssignedToUser);
+    const groupedOrdersCreatedByUser = groupOrdersByWeek(ordersCreatedByUser, 'recipient');
+    const groupedOrdersAssignedToUser = groupOrdersByWeek(ordersAssignedToUser, 'requester');
+    console.log(groupedOrdersAssignedToUser)
 
-    const renderPendingOrders = (groupedPendingOrders) => {
-        console.log(pendingOrders)
-        Object.keys(pendingOrders).map((weekLabel) => {
-            Object.keys(pendingOrders[weekLabel].orders.map((receiver) => {
-                Object.keys(pendingOrders[weekLabel].orders[receiver].map((status) => {
-                    const orders = pendingOrders[weekLabel].orders[receiver][status];
-                    const date = pendingOrders[weekLabel].date
-                    const editable = pendingOrders[weekLabel].editable
-                    return (
+    const renderPendingOrders = (groupedPendingOrders, pendencyType) => {
+        const weekOrdersList = [];
+
+        Object.keys(groupedPendingOrders).forEach((weekLabel) => {
+            Object.keys(groupedPendingOrders[weekLabel]).forEach((userPendency) => {
+                Object.keys(groupedPendingOrders[weekLabel][userPendency]).forEach((status) => {
+                    const pendingOrder = groupedPendingOrders[weekLabel][userPendency][status];
+                    console.log(pendingOrder)
+                    weekOrdersList.push(
                         <WeekOrders
+                            key={`${weekLabel}-${userPendency}-${status}`} // Chave única para cada componente
                             isPendingOrder={true}
-                            receiver={receiver}
+                            userPendency={userPendency}
+                            pendencyType={pendencyType}
                             status={status}
                             weekLabel={weekLabel}
-                            date={date}
-                            orders={orders}
-                            editable={editable}
+                            date={pendingOrder.date}
+                            orders={pendingOrder.orders}
+                            editable={pendingOrder.editable}
                             onSave={(updatedOrders) => {
-                                console.log('Salvar para backend', updatedOrders)
+                                console.log('Salvar para backend', updatedOrders);
                             }}
-
                         />
-                    )
+                    );
+                });
+            });
+        });
 
-                }))
+        return weekOrdersList;
+    };
 
-            }))
-        })
-
-    }
 
     return (
         <Box>
@@ -106,9 +107,19 @@ const PendingOrders = ({ pendingOrders, userNameList }) => {
             </Box>
             {
                 activeTab === 'by-current-user' && (
-                   renderPendingOrders(ordersCreatedByUser)
+                    renderPendingOrders(
+                        groupedOrdersCreatedByUser,
+                        'recipient'
+                    )
                 )
-
+            }
+            {
+                activeTab === 'to-current-user' && (
+                    renderPendingOrders(
+                        groupedOrdersAssignedToUser,
+                        'requester'
+                    )
+                )
             }
 
         </Box>

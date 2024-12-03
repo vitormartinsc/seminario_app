@@ -97,6 +97,30 @@ const SaboresEmaus = () => {
 
     return (
         <Box sx={{ padding: 3 }}>
+
+            {creatingNewWeekOrder ? (
+                <NewWeekOrder
+                    onClose={(reload) => {
+                        if (reload) {
+                            window.location.reload();
+                        }
+                        setCreatingNewWeekOrder(false);
+                    }}
+                    userNameList={userNameList}
+                />
+            ) : (
+                <Grid container spacing={2} justifyContent="left" sx={{ mb: 2 }}>
+                    <Grid item>
+                        <Button
+                            variant="contained"
+                            color="primary"
+                            onClick={() => setCreatingNewWeekOrder(true)} // Botão Novo +
+                        >
+                            Novo +
+                        </Button>
+                    </Grid>
+                </Grid>
+            )}
             <Tabs
                 value={activeTab}
                 onChange={handleTabChange}
@@ -105,7 +129,7 @@ const SaboresEmaus = () => {
                 sx={{ marginBottom: 3 }}
             >
                 <Tab label="Pedidos Agendados" value="open-orders" />
-                <Tab label="Solicitações" value="pending-orders" />
+                <Tab label="Solicitações Abertas" value="pending-orders" />
                 <Tab label="Histórico" value="history-orders" />
             </Tabs>
 
@@ -116,29 +140,7 @@ const SaboresEmaus = () => {
                         Pedidos Agendados
                     </Typography>
 
-                    {creatingNewWeekOrder ? (
-                        <NewWeekOrder
-                            onClose={(reload) => {
-                                if (reload) {
-                                    window.location.reload();
-                                }
-                                setCreatingNewWeekOrder(false);
-                            }}
-                            userNameList={userNameList}
-                        />
-                    ) : (
-                        <Grid container spacing={2} justifyContent="left" sx={{ mb: 2 }}>
-                            <Grid item>
-                                <Button
-                                    variant="contained"
-                                    color="primary"
-                                    onClick={() => setCreatingNewWeekOrder(true)} // Botão Novo +
-                                >
-                                    Novo +
-                                </Button>
-                            </Grid>
-                        </Grid>
-                    )}
+
 
                     {/* Componentes de Pedidos Agendados */}
                     <OpenOrders
@@ -154,10 +156,10 @@ const SaboresEmaus = () => {
                         Solicitações
                     </Typography>
                     {/* Conteúdo da aba Solicitações */}
-                    <PendingOrders 
-                    pendingOrders={pendingOrders}
-                    userNameList={userNameList}
-                    /> 
+                    <PendingOrders
+                        pendingOrders={pendingOrders}
+                        userNameList={userNameList}
+                    />
                 </Box>
             )}
 

@@ -2,6 +2,8 @@ import { Box, Grid, TextField, Typography, Button, Alert } from "@mui/material";
 import React, { useState } from "react";
 import { format, toZonedTime } from 'date-fns-tz'; // Para lidar com fuso horário
 import api from "../api";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle"
+import HourglassEmptyIcon from "@mui/icons-material/HourglassEmpty"
 
 const PRODUCTS = [
     'Tradicional',
@@ -16,9 +18,8 @@ const PRODUCTS = [
 const WeekOrders = ({
     weekLabel, index, date, orders, onSave,
     editable, isPendingOrder, isCreating = false,
-    receiver = null, status = null
+    userPendency = null, status = null, pendencyType = null
 }) => {
-    console.log(orders);    
     const [isEditing, setIsEditing] = useState(isCreating)
     const originalQuantities =
         PRODUCTS.reduce((acc, product) => {
@@ -30,8 +31,12 @@ const WeekOrders = ({
     const timeZone = 'America/Sao_Paulo'; // Ajuste o fuso horário para o Brasil
     const zonedDate = toZonedTime(date, timeZone);
     const Key = isPendingOrder ? (weekLabel + index) : (
-        weekLabel + receiver + status
+        weekLabel + userPendency + status
     )
+
+    const borderColor = status === "approved" ?
+        "green" : status === "pending" ?
+            "orange" : "#ddd";
 
     const handleInputChange = (product, value) => {
         setQuantities((prev) => ({
@@ -57,26 +62,105 @@ const WeekOrders = ({
             console.error('Erro ao enviar os pedidos: ', error)
         }
 
-        onSave(updatedOrders);
+        onSave(updatedOrders, true);
         setIsEditing(false);
     }
 
     const handleCancel = () => {
         setQuantities(originalQuantities)
         setIsEditing(false)
+        if (isCreating) {
+            onSave(null, false)
+        }
+        
+    }
+
+    const renderDefaultButton = () => {
+
+        let buttonText = '';
+        let buttonColor = '';
+
+        if (status === 'pending') {
+            if (pendencyType === 'recipient') {
+                buttonText = 'Editar Solicitação'
+                buttonColor = 'orange'
+            } else if (pendencyType === 'requester') {
+                buttonText = 'Aprovar'
+                buttonColor = 'orange'
+            }
+        }
+        else {
+            buttonText = 'Editar'
+            buttonColor = 'primary'
+        }
+
+        return (
+            <Box sx={{
+                display: 'flex', alignItems: 'center', gap: 2,
+            }}>
+                <Button
+                    sx={{ border: `1px solid ${buttonColor}` }}
+                    variant="outlined"
+                    color={buttonColor}
+                    onClick={() => setIsEditing(true)}
+                    disabled={!editable}
+                >
+                    {buttonText}
+                </Button>
+                {!editable && (
+                    <Alert severity="info" sx={{ padding: 0.5 }}>
+                        Edição só é permitida até a quarta-feira 12h anterior
+                    </Alert>
+                )}
+            </Box>
+        )
     }
 
     return (
         <Box
             sx={{
-                marginBottom: 3, padding: 2, border: '1px solid #ddd',
+                marginBottom: 3, padding: 2, border: `1px solid ${borderColor}`,
                 borderRadius: '8px'
             }}
             key={Key}
         >
 
+
+            {/* Ícone e texto */}
+            <Box sx={{ display: 'flex', alignItems: 'center', marginBottom: 2 }}>
+                {status === "approved" && (
+                    <>
+                        <CheckCircleIcon sx={{ color: 'green', marginRight: 1 }} />
+                        <Typography variant="subtitle2" color="green">
+                            Ordem aprovada
+                        </Typography>
+                    </>
+                )}
+                {status === "pending" && (
+                    <>
+                        <HourglassEmptyIcon sx={{ color: 'orange', marginRight: 1 }} />
+                        <Typography variant="subtitle2" color="orange">
+                            {pendencyType === 'recipient' ? (
+                                `Pendente da Aprovação de ${userPendency.split(' ')[0]}`
+
+                            ) : (
+                                'Pendente da Minha Aprovação'
+
+                            )}
+                        </Typography>
+                    </>
+                )}
+            </Box>
+
             <Typography variant="h6" sx={{ fontWeight: 'bold', marginBottom: 2 }}>
                 {weekLabel} ({format(zonedDate, 'dd/MM/yyyy')})
+                {pendencyType === 'receiver' && (
+                    <>
+                        <br />
+
+                        `Solicitação para ${userPendency}`
+                    </>
+                )}
             </Typography>
             <Grid container spacing={2}>
                 {PRODUCTS.map((product) => {
@@ -109,7 +193,7 @@ const WeekOrders = ({
                                 />
                             ) : (
                                 <Typography sx={{ marginLeft: 2 }}>
-                                    Quantidade: {quantity} unidade(s)
+                                    {quantity} unidade(s)
                                 </Typography>
                             )}
                         </Grid>
@@ -129,21 +213,7 @@ const WeekOrders = ({
                     </>
                 ) : (
                     <>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                            <Button
-                                variant="outlined"
-                                color="primary"
-                                onClick={() => setIsEditing(true)}
-                                disabled={!editable}
-                            >
-                                Editar
-                            </Button>
-                            {!editable && (
-                                <Alert severity="info" sx={{ padding: 0.5 }}>
-                                    Edição só é permitida até a quarta-feira 12h anterior
-                                </Alert>
-                            )}
-                        </Box>
+                        {renderDefaultButton()}
                     </>
                 )}
             </Box>
