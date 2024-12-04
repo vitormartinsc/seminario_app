@@ -121,10 +121,11 @@ class PendingOrderSerializer(serializers.ModelSerializer):
 
 class WeekSerializer(serializers.ModelSerializer):
     editable = serializers.SerializerMethodField()  # Adiciona o campo editable calculado
+    has_existing_order = serializers.SerializerMethodField()
     
     class Meta:
         model = Week
-        fields = ['id', 'date', 'week_label', 'editable']
+        fields = ['id', 'date', 'week_label', 'editable', 'has_existing_order']
 
     def get_editable(self, obj):
         """
@@ -138,5 +139,13 @@ class WeekSerializer(serializers.ModelSerializer):
         # Converte para datetime às 12h
             wednesday_cutoff = datetime.combine(wednesday_date, time(hour=12))
             return now < wednesday_cutoff
+        return False
+    
+    def get_has_existing_order(self, obj):
+        user = self.context.get('user')  # Obter o usuário da requisição
+        if user:
+            # Verificar se o usuário já possui um pedido para essa semana
+            existing_orders = Order.objects.filter(user=user, week_label=obj.week_label)
+            return existing_orders.exists()  # Retorna True ou False
         return False
 

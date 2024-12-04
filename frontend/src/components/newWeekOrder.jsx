@@ -13,6 +13,12 @@ const NewWeekOrder = ({ onClose, userNameList }) => {
     const [isPendingOrder, setIsPendingOrder] = useState(false);
     const [orderType, setOrderType] = useState('comum-order');  // Novo estado para definir o tipo de pedido (agendar ou solicitar)
     const [open, setOpen] = useState(true); // Controla a exibição do modal
+    const [userPendencyName, setUserPendencyName] = useState(null);
+    const [userPendencyId, setUserPendencyId] = useState(null);
+    const [pendencyType, setPendencyType] = useState(null)
+    const [status, setStatus] = useState(null)
+
+    const [openDialog, setOpenDialog] = useState(false); // Controle do diálogo de confirmação
 
     const timeZone = 'America/Sao_Paulo';
 
@@ -28,7 +34,7 @@ const NewWeekOrder = ({ onClose, userNameList }) => {
     const fetchAvailableWeeks = async () => {
         try {
             const response = await api.get('/api/orders/available-dates/');
-            setAvailableWeeks(response.data);
+            setAvailableWeeks(response.data.filter((week) => week.editable));
         } catch (error) {
             console.error('Erro ao buscar semanas disponíveis:', error);
         }
@@ -36,6 +42,7 @@ const NewWeekOrder = ({ onClose, userNameList }) => {
 
     const handleWeekChange = (value) => {
         const week = JSON.parse(value);
+        console.log(week)
         setSelectedWeek(week);
     };
 
@@ -43,7 +50,7 @@ const NewWeekOrder = ({ onClose, userNameList }) => {
         if (!selectedWeek) {
             alert('Selecione uma semana!');
             return;
-        } 
+        }
 
         if (orderType === 'pending-order' && !selectedUser) {
             alert('Selecione um usuário!');
@@ -51,9 +58,19 @@ const NewWeekOrder = ({ onClose, userNameList }) => {
         }
 
         if (orderType === 'comum-order') {
+            if (selectedWeek.has_existing_order) {
+                setOpenDialog(true);  // Abre o diálogo para confirmação
+                return;  // Impede a execução do restante do código até a confirmação
+            }
             setIsPendingOrder(false);
         } else if (orderType === 'pending-order') {
             setIsPendingOrder(true);
+            setUserPendencyId(
+                userNameList.find((user) => user.name === selectedUser).id
+            );
+            setUserPendencyName(selectedUser);
+            setPendencyType('recipient');
+            setStatus('pending');
         }
 
         setHasCreatedOrder(true);
@@ -75,6 +92,33 @@ const NewWeekOrder = ({ onClose, userNameList }) => {
 
     // Filtra o usuário atual da lista de nomes
     const filteredUserList = userNameList.filter((user) => user.name !== currentUser);
+
+    // Componente do diálogo de confirmação
+    const ConfirmReplaceOrderDialog = () => {
+        return (
+            <Dialog open={openDialog} onClose={() => setOpenDialog(false)}>
+                <DialogTitle>Substituir Pedido</DialogTitle>
+                <DialogContent>
+                    <p>Você já tem um pedido para esta data. Deseja substituir o pedido existente?</p>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setOpenDialog(false)} color="secondary">
+                        Cancelar
+                    </Button>
+                    <Button
+                        onClick={() => {
+                            setOpenDialog(false);
+                            setIsPendingOrder(false);
+                            // Lógica para substituir a ordem existente pode ser implementada aqui
+                        }}
+                        color="primary"
+                    >
+                        Confirmar
+                    </Button>
+                </DialogActions>
+            </Dialog>
+        );
+    };
 
     return (
         <Dialog open={open} onClose={() => onClose(false)} maxWidth="sm" fullWidth>
@@ -183,6 +227,10 @@ const NewWeekOrder = ({ onClose, userNameList }) => {
                         isCreating={true}
                         editable={true}
                         isPendingOrder={isPendingOrder}
+                        userPendencyName={userPendencyName}
+                        userPendencyId={userPendencyId}
+                        pendencyType={pendencyType}
+                        status={status}
                     />
                 )}
             </DialogContent>
@@ -191,6 +239,9 @@ const NewWeekOrder = ({ onClose, userNameList }) => {
                     Fechar
                 </Button>
             </DialogActions>
+
+            {/* Exibe o diálogo de substituição de pedido */}
+            <ConfirmReplaceOrderDialog />
         </Dialog>
     );
 };

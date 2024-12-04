@@ -9,6 +9,8 @@ urlpatterns = [
     path('orders/editable/', views.EditableOrdersView.as_view(), name='editable-orders'),
     path('orders/update/', views.UpdateOrderView.as_view(), name='update-order'),
     path('orders/available-dates/', views.availableDatesView.as_view(), name='available-dates'),
+    path('orders/delete/', views.DeleteOrderView.as_view(), name='delete-order'),
     path('users/', views.UserListView.as_view(), name='user-list'),
-    path('orders/pending/', views.PendingOrdersView.as_view(), name='pending-orders-view')
+    path('pending-orders/', views.PendingOrdersView.as_view(), name='pending-orders-view'),
+    path('pending-orders/update/', views.UpdatePendingOrderView.as_view(), name='update-pending-order')
 ]

@@ -54,21 +54,19 @@ const PendingOrders = ({ pendingOrders, userNameList }) => {
 
     const groupedOrdersCreatedByUser = groupOrdersByWeek(ordersCreatedByUser, 'recipient');
     const groupedOrdersAssignedToUser = groupOrdersByWeek(ordersAssignedToUser, 'requester');
-    console.log(groupedOrdersAssignedToUser)
 
     const renderPendingOrders = (groupedPendingOrders, pendencyType) => {
         const weekOrdersList = [];
 
         Object.keys(groupedPendingOrders).forEach((weekLabel) => {
-            Object.keys(groupedPendingOrders[weekLabel]).forEach((userPendency) => {
-                Object.keys(groupedPendingOrders[weekLabel][userPendency]).forEach((status) => {
-                    const pendingOrder = groupedPendingOrders[weekLabel][userPendency][status];
-                    console.log(pendingOrder)
+            Object.keys(groupedPendingOrders[weekLabel]).forEach((userPendencyName) => {
+                Object.keys(groupedPendingOrders[weekLabel][userPendencyName]).forEach((status) => {
+                    const pendingOrder = groupedPendingOrders[weekLabel][userPendencyName][status];
                     weekOrdersList.push(
                         <WeekOrders
-                            key={`${weekLabel}-${userPendency}-${status}`} // Chave única para cada componente
+                            key={`${weekLabel}-${userPendencyName}-${status}`} // Chave única para cada componente
                             isPendingOrder={true}
-                            userPendency={userPendency}
+                            userPendencyName={userPendencyName}
                             pendencyType={pendencyType}
                             status={status}
                             weekLabel={weekLabel}

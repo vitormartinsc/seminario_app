@@ -6,8 +6,6 @@ import Home from './pages/Home';
 import NotFound from './pages/NotFound';
 import SaboresEmaus from './pages/SaboresEmaus';
 import ProtectedRoute from './components/ProtectedRoute';
-import CreateOrder from "./pages/CreateOrder";
-import PreviousOrders from "./pages/PreviousOrders";
 
 
 
@@ -41,16 +39,6 @@ function App() {
           <SaboresEmaus />
           </ProtectedRoute>
           } />
-        <Route path="/fazer-pedido" element={
-          <ProtectedRoute>
-          <CreateOrder />
-          </ProtectedRoute>
-          } />
-        <Route path="/historico-pedidos" element={
-          <ProtectedRoute>
-          <PreviousOrders />
-          </ProtectedRoute>
-          } /> 
         <Route path="*" element={<NotFound />} />
         
       </Routes>

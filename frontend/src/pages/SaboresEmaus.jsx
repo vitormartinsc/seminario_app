@@ -1,9 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import api from "../api";
 import { Box, Button, Typography, Grid, Tabs, Tab } from '@mui/material';
-import DeleteIcon from '@mui/icons-material/Delete';
-import EditIcon from '@mui/icons-material/Edit'
-import WeekOrders from '../components/WeekOrders';
 import '../styles/ListItem.css';
 import NewWeekOrder from '../components/newWeekOrder';
 import OpenOrders from '../components/openOrders';
@@ -29,7 +26,7 @@ const SaboresEmaus = () => {
         try {
             const response = await api.get('/api/orders/editable/'); // Endpoint da API
             setOrders(response.data);
-            //window.orders = response.data
+            window.orders = response.data
             setLoading(false);
         } catch (error) {
             console.error("Erro ao buscar pedidos", error);
@@ -42,7 +39,7 @@ const SaboresEmaus = () => {
         setLoading(true);
 
         try {
-            const response = await api.get('/api/orders/pending/'); // Endpoint da API
+            const response = await api.get('/api/pending-orders/'); // Endpoint da API
             setPendingOrders(response.data);
             //window.orders = response.data
             setLoading(false);

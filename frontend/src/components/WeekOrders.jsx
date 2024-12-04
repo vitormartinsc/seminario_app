@@ -1,9 +1,10 @@
-import { Box, Grid, TextField, Typography, Button, Alert } from "@mui/material";
+import { Box, Grid, TextField, Typography, Button, Alert, IconButton } from "@mui/material";
 import React, { useState } from "react";
 import { format, toZonedTime } from 'date-fns-tz'; // Para lidar com fuso horário
 import api from "../api";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle"
 import HourglassEmptyIcon from "@mui/icons-material/HourglassEmpty"
+import DeleteComponent from "./deleteComponent";
 
 const PRODUCTS = [
     'Tradicional',
@@ -18,7 +19,8 @@ const PRODUCTS = [
 const WeekOrders = ({
     weekLabel, index, date, orders, onSave,
     editable, isPendingOrder, isCreating = false,
-    userPendency = null, status = null, pendencyType = null
+    userPendencyName = null, status = null, pendencyType = null,
+    userPendencyId = null
 }) => {
     const [isEditing, setIsEditing] = useState(isCreating)
     const originalQuantities =
@@ -30,8 +32,10 @@ const WeekOrders = ({
     const [quantities, setQuantities] = useState(originalQuantities)
     const timeZone = 'America/Sao_Paulo'; // Ajuste o fuso horário para o Brasil
     const zonedDate = toZonedTime(date, timeZone);
+    const [deletedOrder, setDeletedOrder] = useState(false);
+
     const Key = isPendingOrder ? (weekLabel + index) : (
-        weekLabel + userPendency + status
+        weekLabel + userPendencyName + status
     )
 
     const borderColor = status === "approved" ?
@@ -48,15 +52,30 @@ const WeekOrders = ({
     const handleSave = async () => {
         const formattedDate = format(zonedDate, 'yyyy-MM-dd')
 
-        const updatedOrders = PRODUCTS.map((product) => ({
-            product,
-            quantity: quantities[product],
+        let updatedOrders;
+        let apiEndPointType;
+
+        if (isPendingOrder) {
+            updatedOrders = PRODUCTS.map((product) => ({
+                product,
+                quantity: quantities[product],
+                date_of_delivery: formattedDate,
+                recipient: userPendencyId,
+                status: status
+            }))
+            apiEndPointType = 'pending-orders';
+            console.log(updatedOrders);
+        } else {
+            updatedOrders = PRODUCTS.map((product) => ({
+                product,
+                quantity: quantities[product],
             date_of_delivery: formattedDate
-        }))
+            }))
+            apiEndPointType = 'orders';
+        }
 
         try {
-            console.log(updatedOrders);
-            await api.post('/api/orders/update/', { orders: updatedOrders })
+            await api.post(`api/${apiEndPointType}/update/`, { orders: updatedOrders })
 
         } catch (error) {
             console.error('Erro ao enviar os pedidos: ', error)
@@ -72,8 +91,13 @@ const WeekOrders = ({
         if (isCreating) {
             onSave(null, false)
         }
-        
+
     }
+
+    const onDelete = () => {
+        setDeletedOrder(true)
+    }
+
 
     const renderDefaultButton = () => {
 
@@ -95,9 +119,14 @@ const WeekOrders = ({
         }
 
         return (
-            <Box sx={{
-                display: 'flex', alignItems: 'center', gap: 2,
-            }}>
+            <Box
+                sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 2,
+                }}
+            >
+                {/* Botão de editar */}
                 <Button
                     sx={{ border: `1px solid ${buttonColor}` }}
                     variant="outlined"
@@ -107,14 +136,24 @@ const WeekOrders = ({
                 >
                     {buttonText}
                 </Button>
+
+                {/* Componente de deletar */}
+                <DeleteComponent weekLabel={weekLabel} onDelete={onDelete} />
+
+                {/* Alerta informativo (se não for editável) */}
                 {!editable && (
                     <Alert severity="info" sx={{ padding: 0.5 }}>
                         Edição só é permitida até a quarta-feira 12h anterior
                     </Alert>
                 )}
             </Box>
+
         )
     }
+
+    if (deletedOrder) {
+        return null
+    };
 
     return (
         <Box
@@ -124,6 +163,8 @@ const WeekOrders = ({
             }}
             key={Key}
         >
+
+
 
 
             {/* Ícone e texto */}
@@ -141,7 +182,7 @@ const WeekOrders = ({
                         <HourglassEmptyIcon sx={{ color: 'orange', marginRight: 1 }} />
                         <Typography variant="subtitle2" color="orange">
                             {pendencyType === 'recipient' ? (
-                                `Pendente da Aprovação de ${userPendency.split(' ')[0]}`
+                                `Pendente da Aprovação de ${userPendencyName.split(' ')[0]}`
 
                             ) : (
                                 'Pendente da Minha Aprovação'
@@ -158,7 +199,7 @@ const WeekOrders = ({
                     <>
                         <br />
 
-                        `Solicitação para ${userPendency}`
+                        `Solicitação para ${userPendencyName}`
                     </>
                 )}
             </Typography>

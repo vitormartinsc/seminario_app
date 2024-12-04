@@ -98,7 +98,92 @@ class UpdateOrderView(APIView):
                 {'message': 'Pedidos atualizados com sucesso'},
                 status.HTTP_200_OK
                 )
+            
+class UpdatePendingOrderView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def post(self, request):
+        user = self.request.user
+        orders = request.data.get('orders', [])
         
+        if not orders:
+            return Response({'error': 'Nenhum pedido fornecido'}, status=status.HTTP_400_BAD_REQUEST)
+                       
+        for order in orders:
+            product = order.get('product')
+            quantity = order.get('quantity')
+            date_of_delivery = order.get('date_of_delivery')
+            recipientId = order.get('recipient')
+            recipient = User.objects.get(id = recipientId)
+            
+
+            if not product or not date_of_delivery or not recipient:
+                return Response(
+                    {'error': 'Pedido inválido'},
+                    status = status.HTTP_400_BAD_REQUEST
+                )
+                
+            try: 
+                existing_pending_order = PendingOrder.objects.get(
+                    requester=user,
+                    product=product,
+                    recipient=recipient,
+                    date_of_delivery=date_of_delivery
+                )
+                
+                if int(quantity) > 0:
+                    existing_pending_order.quantity = quantity
+                    existing_pending_order.save()
+
+                else:
+                    existing_pending_order.delete()      
+                          
+            except PendingOrder.DoesNotExist:
+                
+                if int(quantity) > 0:
+                    PendingOrder.objects.create(
+                        product=product,
+                        recipient=recipient,
+                        requester=user,
+                        status='pending',
+                        quantity=quantity,
+                        date_of_delivery=date_of_delivery
+                    )
+                
+            return Response(
+                {'message': 'Pedidos atualizados com sucesso'},
+                status.HTTP_200_OK
+                )
+            
+class DeleteOrderView(generics.GenericAPIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        user = self.request.user
+        week_label = request.data.get('weekLabel')  # Corrigido para acessar dados do corpo da requisição
+        try:
+            # Busca pedidos do usuário para a semana especificada
+            existing_orders = Order.objects.filter(
+                user=user,
+                week_label=week_label
+            )
+
+            if not existing_orders.exists():  # Verifica se há pedidos para deletar
+                return Response({
+                    'message': 'Order does not exist'
+                }, status=status.HTTP_404_NOT_FOUND)
+
+            existing_orders.delete()  # Deleta os pedidos encontrados
+            return Response(
+                {"message": "Pedido deletado com sucesso"},
+                status=status.HTTP_200_OK
+            )
+
+        except Exception as e:  # Captura erros genéricos
+            return Response({
+                'message': 'An error occurred',
+                'details': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class PreviousOrdersView(generics.ListAPIView):
     serializer_class = OrderSerializer
@@ -173,33 +258,9 @@ class availableDatesView(APIView):
     permission_classes = [IsAuthenticated]
     
     def get(self, request):
-        user = request.user
-        now = timezone.now()
-        today = now.date()
-        
-        # Pedidos editáveis do usuário
-        editable_orders = Order.objects.filter(
-            user=user,
-            date_of_delivery__gte=today  # Apenas futuras ou da data atual
-        ).values_list('week_label', flat=True)  # Obtemos apenas os labels
-
-        # Todas as semanas disponíveis até o final do ano
         all_weeks = Week.objects.filter(date__lt='2025-01-01')
-        
-        available_weeks = []
-        
-        for week in all_weeks:
-            week_date = week.date
-            wednesday_date = week_date - timedelta(days=(week_date.weekday() - 2))
-        # Converte para datetime às 12h
-            wednesday_cutoff = datetime.combine(wednesday_date, time(hour=12))
-            wednesday_cutoff_awere = timezone.make_aware(wednesday_cutoff) # Tornar a timezone aware
-            is_editable = now < wednesday_cutoff_awere
-            if is_editable and week.week_label not in editable_orders:
-                available_weeks.append(week)
-            
-        # Serializar as semanas disponíveis
-        serializer = WeekSerializer(available_weeks, many=True)
+        # Serializar as semanas com o usuário no contexto para o WeekSerializer
+        serializer = WeekSerializer(all_weeks, many=True, context={'user': request.user})
         return Response(serializer.data)
         
 class UserListView(APIView):
